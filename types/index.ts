@@ -1,3 +1,4 @@
+// Report Types
 export type ReportCategory = 
   | 'light' 
   | 'water' 
@@ -9,7 +10,30 @@ export type ReportCategory =
 
 export type ReportStatus = 'pending' | 'confirmed' | 'resolved';
 
-export type UserRole = 'observer' | 'reporter' | 'validator' | 'partner';
+export type UserRole = 'observer' | 'reporter' | 'validator' | 'partner' | 'business';
+
+export type BusinessType = 'fuel_station' | 'retail_shop' | 'market' | 'other';
+
+export type BusinessStatus = 'pending' | 'verified' | 'rejected';
+
+export interface Business {
+  id: string;
+  name: string;
+  type: BusinessType;
+  category: ReportCategory;
+  contactPerson: string;
+  phone: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  address: string;
+  logoUrl?: string;
+  status: BusinessStatus;
+  rejectionReason?: string;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface PriceDetails {
   itemName: string;
@@ -45,6 +69,9 @@ export interface Report {
   userId: string;
   anonymous: boolean;
   confirmations: number;
+  isSponsored?: boolean;
+  sponsoredBy?: string;
+  expiresAt?: number;
   metadata?: {
     severity?: 'light' | 'moderate' | 'heavy';
     availability?: boolean;
