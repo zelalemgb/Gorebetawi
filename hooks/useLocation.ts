@@ -37,7 +37,9 @@ export function useLocation() {
           accuracy: Location.Accuracy.Balanced,
         });
         
+        // Check if component is still mounted before updating state
         if (!mounted.current) return;
+        
         setState({
           location: initialLocation,
           errorMsg: null,
