@@ -10,7 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Pressable
+  Pressable,
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, Camera, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Trash2, MapPin, Clock, CircleCheck as CheckCircle2 } from 'lucide-react-native';
@@ -18,7 +19,7 @@ import { LightTheme, Colors } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
-import { ReportCategory } from '@/types';
+import { ReportCategory, PriceDetails, FuelStation } from '@/types';
 
 interface ReportFormModalProps {
   visible: boolean;
@@ -28,6 +29,24 @@ interface ReportFormModalProps {
     longitude: number;
   };
 }
+
+const PRICE_CATEGORIES = [
+  {
+    name: 'Teff/Injera',
+    units: ['kg', 'quintal'],
+    defaultUnit: 'kg'
+  },
+  {
+    name: 'Cooking Oil',
+    units: ['liter', '5-liter', '20-liter'],
+    defaultUnit: 'liter'
+  },
+  {
+    name: 'House Rent',
+    units: ['month'],
+    defaultUnit: 'month'
+  }
+];
 
 const CATEGORIES: {
   key: ReportCategory;
@@ -165,7 +184,7 @@ export default function ReportFormModal({
   onClose,
   currentLocation
 }: ReportFormModalProps) {
-  const { addReport, loading } = useReports();
+  const { addReport, loading, getNearbyFuelStations } = useReports();
   const { getAddressFromCoordinates } = useLocation();
   
   const [category, setCategory] = useState<ReportCategory | null>(null);
@@ -175,8 +194,19 @@ export default function ReportFormModal({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [anonymous, setAnonymous] = useState(false);
   const [metadata, setMetadata] = useState<any>({});
-  
-  // Get address from coordinates when location changes
+  const [priceDetails, setPriceDetails] = useState<PriceDetails>({
+    itemName: '',
+    unitOfMeasure: '',
+    quantity: 1,
+    price: 0,
+    previousPrice: undefined
+  });
+  const [selectedStation, setSelectedStation] = useState<FuelStation | null>(null);
+
+  const nearbyStations = currentLocation 
+    ? getNearbyFuelStations(currentLocation.latitude, currentLocation.longitude)
+    : [];
+
   useEffect(() => {
     if (location) {
       getAddressFromCoordinates(location.latitude, location.longitude)
@@ -203,9 +233,13 @@ export default function ReportFormModal({
         location: location,
         address: address || undefined,
         imageUrl: imageUrl || undefined,
-        userId: 'user123', // In a real app, this would be the actual user ID
+        userId: 'user123',
         anonymous,
-        metadata
+        metadata: {
+          ...metadata,
+          priceDetails: category === 'price' ? priceDetails : undefined,
+          fuelStation: category === 'fuel' ? selectedStation : undefined
+        }
       };
       
       await addReport(reportData);
@@ -215,7 +249,6 @@ export default function ReportFormModal({
     }
   };
 
-  // For demo purposes, let's use a placeholder image when camera button is pressed
   const handleTakePhoto = () => {
     setImageUrl('https://images.pexels.com/photos/2096700/pexels-photo-2096700.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
   };
@@ -357,6 +390,145 @@ export default function ReportFormModal({
     );
   };
 
+  const renderPriceInputs = () => {
+    const selectedCategory = PRICE_CATEGORIES.find(cat => cat.name === priceDetails.itemName);
+    
+    return (
+      <View style={styles.priceInputContainer}>
+        <Text style={styles.sectionTitle}>Price Details</Text>
+        
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Item</Text>
+          <View style={styles.buttonGroup}>
+            {PRICE_CATEGORIES.map(category => (
+              <TouchableOpacity
+                key={category.name}
+                style={[
+                  styles.categoryButton,
+                  priceDetails.itemName === category.name && styles.categoryButtonActive
+                ]}
+                onPress={() => setPriceDetails(prev => ({
+                  ...prev,
+                  itemName: category.name,
+                  unitOfMeasure: category.defaultUnit
+                }))}
+              >
+                <Text style={[
+                  styles.categoryButtonText,
+                  priceDetails.itemName === category.name && styles.categoryButtonTextActive
+                ]}>
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {selectedCategory && (
+          <>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Unit</Text>
+              <View style={styles.buttonGroup}>
+                {selectedCategory.units.map(unit => (
+                  <TouchableOpacity
+                    key={unit}
+                    style={[
+                      styles.unitButton,
+                      priceDetails.unitOfMeasure === unit && styles.unitButtonActive
+                    ]}
+                    onPress={() => setPriceDetails(prev => ({
+                      ...prev,
+                      unitOfMeasure: unit
+                    }))}
+                  >
+                    <Text style={[
+                      styles.unitButtonText,
+                      priceDetails.unitOfMeasure === unit && styles.unitButtonTextActive
+                    ]}>
+                      {unit}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.inputRow}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Quantity</Text>
+                <TextInput
+                  style={styles.numberInput}
+                  keyboardType="numeric"
+                  value={priceDetails.quantity.toString()}
+                  onChangeText={(text) => setPriceDetails(prev => ({
+                    ...prev,
+                    quantity: parseFloat(text) || 0
+                  }))}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Current Price (Birr)</Text>
+                <TextInput
+                  style={styles.numberInput}
+                  keyboardType="numeric"
+                  value={priceDetails.price.toString()}
+                  onChangeText={(text) => setPriceDetails(prev => ({
+                    ...prev,
+                    price: parseFloat(text) || 0
+                  }))}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Previous Price (Optional)</Text>
+              <TextInput
+                style={styles.numberInput}
+                keyboardType="numeric"
+                value={priceDetails.previousPrice?.toString() || ''}
+                onChangeText={(text) => setPriceDetails(prev => ({
+                  ...prev,
+                  previousPrice: parseFloat(text) || undefined
+                }))}
+                placeholder="Enter previous price"
+              />
+            </View>
+          </>
+        )}
+      </View>
+    );
+  };
+
+  const renderFuelStationSelector = () => (
+    <View style={styles.stationContainer}>
+      <Text style={styles.sectionTitle}>Select Fuel Station</Text>
+      
+      {nearbyStations.map(station => (
+        <TouchableOpacity
+          key={station.id}
+          style={[
+            styles.stationButton,
+            selectedStation?.id === station.id && styles.stationButtonActive
+          ]}
+          onPress={() => setSelectedStation(station)}
+        >
+          <View style={styles.stationInfo}>
+            <Text style={styles.stationName}>{station.name}</Text>
+            <Text style={styles.stationAddress}>{station.address}</Text>
+          </View>
+          <View style={[
+            styles.radioButton,
+            selectedStation?.id === station.id && styles.radioButtonActive
+          ]}>
+            {selectedStation?.id === station.id && (
+              <View style={styles.radioButtonInner} />
+            )}
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
   return (
     <Modal
       visible={visible}
@@ -390,6 +562,8 @@ export default function ReportFormModal({
 
                 {renderMetadataInputs()}
                 {renderDescriptionOptions()}
+                {category === 'price' && renderPriceInputs()}
+                {category === 'fuel' && renderFuelStationSelector()}
 
                 <View style={styles.locationContainer}>
                   <View style={styles.locationHeader}>
@@ -716,5 +890,105 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: LightTheme.border,
+  },
+  priceInputContainer: {
+    marginBottom: 24,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: LightTheme.text,
+    marginBottom: 8,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  numberInput: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: LightTheme.text,
+    backgroundColor: LightTheme.white,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  unitButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: LightTheme.neutral,
+  },
+  unitButtonActive: {
+    backgroundColor: LightTheme.accent,
+  },
+  unitButtonText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: LightTheme.secondaryText,
+  },
+  unitButtonTextActive: {
+    color: LightTheme.white,
+  },
+  stationContainer: {
+    marginBottom: 24,
+  },
+  stationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: LightTheme.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    marginBottom: 8,
+  },
+  stationButtonActive: {
+    borderColor: LightTheme.accent,
+    backgroundColor: 'rgba(63, 81, 181, 0.05)',
+  },
+  stationInfo: {
+    flex: 1,
+  },
+  stationName: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: LightTheme.text,
+    marginBottom: 4,
+  },
+  stationAddress: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: LightTheme.secondaryText,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: LightTheme.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonActive: {
+    borderColor: LightTheme.accent,
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: LightTheme.accent,
   },
 });
