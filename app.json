@@ -23,9 +23,6 @@
     "unstable_settings": {
       "web": {
         "bundler": "metro",
-        "unstable_transformerConfig": {
-          "unstable_allowRequireContext": true
-        },
         "unstable_moduleLoadingConfig": {
           "excludeFromParent": ["react-native-maps"]
         }
