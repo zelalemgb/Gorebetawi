@@ -14,8 +14,9 @@ interface MapComponentProps {
 
 export default function MapComponent(props: MapComponentProps) {
   if (Platform.OS === 'web') {
-    // Dynamically import the web map component only when running on web
-    const WebMapComponent = require('./WebMapComponent.tsx').default;
+    // Properly handle the module resolution for web platform
+    const WebMapModule = require('./WebMapComponent.tsx');
+    const WebMapComponent = WebMapModule.default || WebMapModule;
     return <WebMapComponent {...props} />;
   }
 
