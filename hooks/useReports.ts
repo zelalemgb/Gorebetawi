@@ -1,7 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Report, ReportCategory } from '@/types';
 
-// Mock data centered around Bole, Addis Ababa
+// Mock fuel stations data
+const MOCK_FUEL_STATIONS: FuelStation[] = [
+  {
+    id: 'total1',
+    name: 'Total Bole',
+    address: 'Bole Road, Near Bole Medhanialem',
+    location: { latitude: 8.9778, longitude: 38.7991 }
+  },
+  {
+    id: 'noc1',
+    name: 'NOC Bole',
+    address: 'Bole Atlas, Near Atlas Hotel',
+    location: { latitude: 8.9934, longitude: 38.7978 }
+  },
+  {
+    id: 'oilibya1',
+    name: 'OiLibya Rwanda',
+    address: 'Rwanda Street, Near Rwanda Embassy',
+    location: { latitude: 8.9845, longitude: 38.7925 }
+  }
+];
+
 const MOCK_REPORTS: Report[] = [
   {
     id: '1',
@@ -198,6 +219,11 @@ export function useReports() {
     return reports.filter(report => categories.includes(report.category));
   }, [reports]);
 
+  const getNearbyFuelStations = useCallback((latitude: number, longitude: number, radius: number = 2) => {
+    // In a real app, this would filter based on actual distance calculation
+    return MOCK_FUEL_STATIONS;
+  }, []);
+
   return {
     reports,
     loading,
@@ -205,5 +231,6 @@ export function useReports() {
     addReport,
     confirmReport,
     filterReportsByCategory,
+    getNearbyFuelStations,
   };
 }
