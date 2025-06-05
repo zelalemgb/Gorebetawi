@@ -13,20 +13,7 @@ import {
   Pressable
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { 
-  X, 
-  Camera, 
-  Lightbulb,
-  Droplet,
-  Fuel,
-  DollarSign,
-  Car,
-  HardHat,
-  Trash2,
-  MapPin,
-  Clock,
-  CheckCircle2
-} from 'lucide-react-native';
+import { X, Camera, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Trash2, MapPin, Clock, CircleCheck as CheckCircle2 } from 'lucide-react-native';
 import { LightTheme, Colors } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 import { useReports } from '@/hooks/useReports';
