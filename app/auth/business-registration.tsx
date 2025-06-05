@@ -12,7 +12,7 @@ import {
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Building, Phone, MapPin, Upload, Store, GasPump, ShoppingBag } from 'lucide-react-native';
+import { ArrowLeft, Building, Phone, MapPin, Upload, Store, Fuel, ShoppingBag } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 import { useBusiness } from '@/hooks/useBusiness';
@@ -23,7 +23,7 @@ const BUSINESS_TYPES: { key: BusinessType; label: string; icon: JSX.Element }[] 
   {
     key: 'fuel_station',
     label: 'Fuel Station',
-    icon: <GasPump size={24} color={LightTheme.accent} />
+    icon: <Fuel size={24} color={LightTheme.accent} />
   },
   {
     key: 'retail_shop',
