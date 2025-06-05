@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Report, ReportCategory, FuelStation } from '@/types';
 
 // Mock fuel stations data
@@ -144,6 +144,7 @@ export function useReports() {
   const [reports, setReports] = useState<Report[]>(MOCK_REPORTS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mounted = useRef(true);
 
   // Fetch reports
   useEffect(() => {
@@ -152,6 +153,8 @@ export function useReports() {
         // In a real app, you would fetch data from an API
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        if (!mounted.current) return;
+
         // Filter out expired sponsored reports
         const currentTime = Date.now();
         const validReports = MOCK_REPORTS.filter(report => 
@@ -161,12 +164,18 @@ export function useReports() {
         setReports(validReports);
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch reports');
-        setLoading(false);
+        if (mounted.current) {
+          setError('Failed to fetch reports');
+          setLoading(false);
+        }
       }
     };
 
     fetchReports();
+
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
   // Add a new report
@@ -176,6 +185,8 @@ export function useReports() {
       // In a real app, you would submit to an API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      if (!mounted.current) return null;
+
       const newReport: Report = {
         ...report,
         id: Math.random().toString(36).substring(7),
@@ -186,10 +197,14 @@ export function useReports() {
       setReports(prev => [newReport, ...prev]);
       return newReport.id;
     } catch (err) {
-      setError('Failed to submit report');
+      if (mounted.current) {
+        setError('Failed to submit report');
+      }
       return null;
     } finally {
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -205,6 +220,8 @@ export function useReports() {
       // In a real app, you would submit to an API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      if (!mounted.current) return null;
+
       const newReport: Report = {
         ...report,
         id: Math.random().toString(36).substring(7),
@@ -216,10 +233,14 @@ export function useReports() {
       setReports(prev => [newReport, ...prev]);
       return newReport.id;
     } catch (err) {
-      setError('Failed to submit sponsored report');
+      if (mounted.current) {
+        setError('Failed to submit sponsored report');
+      }
       return null;
     } finally {
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -229,6 +250,8 @@ export function useReports() {
       // In a real app, you would submit to an API
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      if (!mounted.current) return false;
+
       setReports(prev => 
         prev.map(report => 
           report.id === reportId 
@@ -243,7 +266,9 @@ export function useReports() {
       
       return true;
     } catch (err) {
-      setError('Failed to confirm report');
+      if (mounted.current) {
+        setError('Failed to confirm report');
+      }
       return false;
     }
   }, []);

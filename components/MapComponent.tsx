@@ -1,5 +1,5 @@
-import React from 'react';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import React, { Suspense } from 'react';
+import { Platform, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { Report } from '@/types';
 import { Colors } from '@/constants/Colors';
 
@@ -12,15 +12,22 @@ interface MapComponentProps {
   onScroll?: (event: any) => void;
 }
 
+const WebMapComponent = React.lazy(() => import('./WebMapComponent'));
+
 export default function MapComponent(props: MapComponentProps) {
   if (Platform.OS === 'web') {
-    // Properly handle the module resolution for web platform
-    const WebMapModule = require('./WebMapComponent.tsx');
-    const WebMapComponent = WebMapModule.default || WebMapModule;
-    return <WebMapComponent {...props} />;
+    return (
+      <Suspense fallback={
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading map...</Text>
+        </View>
+      }>
+        <WebMapComponent {...props} />
+      </Suspense>
+    );
   }
 
-  // Return a placeholder for non-web platforms
   return (
     <View style={styles.container}>
       <Text>Map is only available on web platform</Text>
@@ -34,4 +41,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 10,
+    color: Colors.primary,
+  }
 });

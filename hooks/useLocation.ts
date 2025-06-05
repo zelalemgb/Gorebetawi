@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 
 interface LocationState {
@@ -13,6 +13,7 @@ export function useLocation() {
     errorMsg: null,
     loading: true,
   });
+  const mounted = useRef(true);
 
   useEffect(() => {
     let locationSubscription: Location.LocationSubscription;
@@ -20,6 +21,8 @@ export function useLocation() {
     (async () => {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
+        if (!mounted.current) return;
+
         if (status !== 'granted') {
           setState({
             location: null,
@@ -34,6 +37,7 @@ export function useLocation() {
           accuracy: Location.Accuracy.Balanced,
         });
         
+        if (!mounted.current) return;
         setState({
           location: initialLocation,
           errorMsg: null,
@@ -48,23 +52,28 @@ export function useLocation() {
             distanceInterval: 10, // Update if moved by 10 meters
           },
           (newLocation) => {
-            setState(prev => ({
-              ...prev,
-              location: newLocation,
-            }));
+            if (mounted.current) {
+              setState(prev => ({
+                ...prev,
+                location: newLocation,
+              }));
+            }
           }
         );
       } catch (error) {
-        setState({
-          location: null,
-          errorMsg: 'Failed to get location',
-          loading: false,
-        });
+        if (mounted.current) {
+          setState({
+            location: null,
+            errorMsg: 'Failed to get location',
+            loading: false,
+          });
+        }
       }
     })();
 
-    // Cleanup subscription on unmount
+    // Cleanup subscription and mounted ref on unmount
     return () => {
+      mounted.current = false;
       if (locationSubscription) {
         locationSubscription.remove();
       }
