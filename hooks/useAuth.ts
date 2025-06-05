@@ -1,21 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
-
-// Mock authentication for demonstration
-// In a real app, this would connect to Firebase Auth or similar
-
-const MOCK_USER: User = {
-  id: 'user123',
-  name: 'Demo User',
-  email: 'demo@example.com',
-  preferences: {
-    interestedCategories: ['safety', 'environment'],
-    alwaysAnonymous: false,
-    enableLocationAccess: true,
-  },
-  reports: 5,
-  confirmations: 12,
-};
+import { supabase, getCurrentUser } from '@/lib/supabase';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -23,53 +8,67 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuthState = async () => {
-      try {
-        // In a real app, you would use Firebase or similar to check auth state
-        const storedUser = localStorage.getItem('gorebet_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to check authentication state');
-        setLoading(false);
+    checkUser();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata.name,
+          role: session.user.user_metadata.role,
+          preferences: session.user.user_metadata.preferences,
+        });
+      } else {
+        setUser(null);
       }
-    };
+    });
 
-    checkAuthState();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  async function checkUser() {
+    try {
+      const { data: { user: authUser }, error: authError } = await getCurrentUser();
+      
+      if (authError) throw authError;
+      
+      if (authUser) {
+        setUser({
+          id: authUser.id,
+          email: authUser.email!,
+          name: authUser.user_metadata.name,
+          role: authUser.user_metadata.role,
+          preferences: authUser.user_metadata.preferences,
+        });
+      }
+    } catch (err) {
+      console.error('Error checking auth state:', err);
+      setError('Failed to check authentication state');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      // Mock authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you would use Firebase Auth or similar
-      localStorage.setItem('gorebet_user', JSON.stringify(MOCK_USER));
-      setUser(MOCK_USER);
       setError(null);
-    } catch (err) {
-      setError('Failed to sign in');
-    } finally {
-      setLoading(false);
-    }
-  };
+      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-  const signInWithSocial = async (provider: 'google' | 'apple') => {
-    try {
-      setLoading(true);
-      // Mock social authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (signInError) throw signInError;
       
-      // In a real app, you would use Firebase Auth or similar
-      localStorage.setItem('gorebet_user', JSON.stringify(MOCK_USER));
-      setUser(MOCK_USER);
-      setError(null);
-    } catch (err) {
-      setError(`Failed to sign in with ${provider}`);
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in');
+      return false;
     } finally {
       setLoading(false);
     }
@@ -78,15 +77,22 @@ export function useAuth() {
   const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
-      // Mock sign up
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you would use Firebase Auth or similar
-      localStorage.setItem('gorebet_user', JSON.stringify(MOCK_USER));
-      setUser(MOCK_USER);
       setError(null);
-    } catch (err) {
-      setError('Failed to sign up');
+      
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+
+      if (signUpError) throw signUpError;
+      
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign up');
+      return false;
     } finally {
       setLoading(false);
     }
@@ -95,14 +101,36 @@ export function useAuth() {
   const signOut = async () => {
     try {
       setLoading(true);
-      // Mock sign out
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setError(null);
       
-      // In a real app, you would use Firebase Auth or similar
-      localStorage.removeItem('gorebet_user');
+      const { error: signOutError } = await supabase.auth.signOut();
+      
+      if (signOutError) throw signOutError;
+      
       setUser(null);
-    } catch (err) {
-      setError('Failed to sign out');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign out');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUserRole = async (role: User['role']) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { role }
+      });
+
+      if (updateError) throw updateError;
+      
+      if (user) {
+        setUser({ ...user, role });
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update role');
     } finally {
       setLoading(false);
     }
@@ -110,38 +138,33 @@ export function useAuth() {
 
   const updateUserPreferences = async (preferences: Partial<User['preferences']>) => {
     try {
-      if (!user) return;
+      setLoading(true);
+      setError(null);
       
-      const updatedUser = {
-        ...user,
-        preferences: {
-          ...user.preferences,
-          ...preferences,
-        },
-      };
-      
-      // In a real app, you would update the user in Firebase or similar
-      localStorage.setItem('gorebet_user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-    } catch (err) {
-      setError('Failed to update preferences');
-    }
-  };
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { 
+          preferences: {
+            ...(user?.preferences || {}),
+            ...preferences
+          }
+        }
+      });
 
-  const updateUserRole = async (role: User['role']) => {
-    try {
-      if (!user) return;
+      if (updateError) throw updateError;
       
-      const updatedUser = {
-        ...user,
-        role,
-      };
-      
-      // In a real app, you would update the user in Firebase or similar
-      localStorage.setItem('gorebet_user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-    } catch (err) {
-      setError('Failed to update role');
+      if (user) {
+        setUser({
+          ...user,
+          preferences: {
+            ...(user.preferences || {}),
+            ...preferences
+          }
+        });
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update preferences');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,10 +173,9 @@ export function useAuth() {
     loading,
     error,
     signIn,
-    signInWithSocial,
     signUp,
     signOut,
-    updateUserPreferences,
     updateUserRole,
+    updateUserPreferences,
   };
 }
