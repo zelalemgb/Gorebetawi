@@ -1,12 +1,9 @@
 const { getDefaultConfig } = require('@expo/metro-config');
-const { resolver: { sourceExts, assetExts } } = getDefaultConfig(__dirname);
 
-module.exports = {
-  transformer: {
-    assetPlugins: ['expo-asset/tools/hashAssetFiles'],
-  },
-  resolver: {
-    sourceExts,
-    assetExts
-  },
-};
+/**
+ * Use Expo's default Metro configuration.
+ * This automatically sets the correct `assetRegistryPath` so images
+ * bundled by packages like `expo-router` resolve properly.
+ */
+module.exports = getDefaultConfig(__dirname);
+
