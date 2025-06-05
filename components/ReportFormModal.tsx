@@ -10,11 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Pressable,
   TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { X, Camera, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Trash2, MapPin, Clock, CircleCheck as CheckCircle2 } from 'lucide-react-native';
+import { X, Camera, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Trash2, MapPin } from 'lucide-react-native';
 import { LightTheme, Colors } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 import { useReports } from '@/hooks/useReports';
@@ -30,7 +29,7 @@ interface ReportFormModalProps {
   };
 }
 
-const PRICE_CATEGORIES = [
+const PRICE_ITEMS = [
   {
     name: 'Teff/Injera',
     units: ['kg', 'quintal'],
@@ -198,10 +197,10 @@ export default function ReportFormModal({
     itemName: '',
     unitOfMeasure: '',
     quantity: 1,
-    price: 0,
-    previousPrice: undefined
+    price: 0
   });
   const [selectedStation, setSelectedStation] = useState<FuelStation | null>(null);
+  const [customDescription, setCustomDescription] = useState('');
 
   const nearbyStations = currentLocation 
     ? getNearbyFuelStations(currentLocation.latitude, currentLocation.longitude)
@@ -227,7 +226,7 @@ export default function ReportFormModal({
     try {
       const reportData = {
         title: `${CATEGORIES.find(c => c.key === category)?.title} Report`,
-        description,
+        description: customDescription || description,
         category,
         status: 'pending',
         location: location,
@@ -281,155 +280,45 @@ export default function ReportFormModal({
     </View>
   );
 
-  const renderMetadataInputs = () => {
-    if (!selectedCategory?.metadata) return null;
-
-    return (
-      <View style={styles.metadataContainer}>
-        {selectedCategory.metadata.toggles && (
-          <View style={styles.toggleGroup}>
-            {selectedCategory.metadata.toggles.map(toggle => (
-              <TouchableOpacity
-                key={toggle.value}
-                style={[
-                  styles.toggleButton,
-                  metadata.toggle === toggle.value && styles.toggleButtonActive
-                ]}
-                onPress={() => setMetadata({ ...metadata, toggle: toggle.value })}
-              >
-                <Text style={[
-                  styles.toggleButtonText,
-                  metadata.toggle === toggle.value && styles.toggleButtonTextActive
-                ]}>
-                  {toggle.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {selectedCategory.metadata.severityLevels && (
-          <View style={styles.severityContainer}>
-            <Text style={styles.sectionTitle}>Severity</Text>
-            <View style={styles.severityButtons}>
-              {selectedCategory.metadata.severityLevels.map(level => (
-                <TouchableOpacity
-                  key={level.value}
-                  style={[
-                    styles.severityButton,
-                    metadata.severity === level.value && styles.severityButtonActive
-                  ]}
-                  onPress={() => setMetadata({ ...metadata, severity: level.value })}
-                >
-                  <Text style={[
-                    styles.severityButtonText,
-                    metadata.severity === level.value && styles.severityButtonTextActive
-                  ]}>
-                    {level.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {selectedCategory.metadata.subcategories && (
-          <View style={styles.subcategoryContainer}>
-            <Text style={styles.sectionTitle}>Type</Text>
-            <View style={styles.subcategoryButtons}>
-              {selectedCategory.metadata.subcategories.map(sub => (
-                <TouchableOpacity
-                  key={sub}
-                  style={[
-                    styles.subcategoryButton,
-                    metadata.subcategory === sub && styles.subcategoryButtonActive
-                  ]}
-                  onPress={() => setMetadata({ ...metadata, subcategory: sub })}
-                >
-                  <Text style={[
-                    styles.subcategoryButtonText,
-                    metadata.subcategory === sub && styles.subcategoryButtonTextActive
-                  ]}>
-                    {sub}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  const renderDescriptionOptions = () => {
-    if (!selectedCategory) return null;
-
-    return (
-      <View style={styles.descriptionContainer}>
-        <Text style={styles.sectionTitle}>Quick Description</Text>
-        <View style={styles.descriptionOptions}>
-          {selectedCategory.descriptions.map((desc, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.descriptionOption,
-                description === desc && styles.descriptionOptionActive
-              ]}
-              onPress={() => setDescription(desc)}
-            >
-              <Text style={[
-                styles.descriptionOptionText,
-                description === desc && styles.descriptionOptionTextActive
-              ]}>
-                {desc}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  };
-
   const renderPriceInputs = () => {
-    const selectedCategory = PRICE_CATEGORIES.find(cat => cat.name === priceDetails.itemName);
+    const selectedItem = PRICE_ITEMS.find(item => item.name === priceDetails.itemName);
     
     return (
       <View style={styles.priceInputContainer}>
-        <Text style={styles.sectionTitle}>Price Details</Text>
-        
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Item</Text>
+          <Text style={styles.inputLabel}>Select Item</Text>
           <View style={styles.buttonGroup}>
-            {PRICE_CATEGORIES.map(category => (
+            {PRICE_ITEMS.map(item => (
               <TouchableOpacity
-                key={category.name}
+                key={item.name}
                 style={[
-                  styles.categoryButton,
-                  priceDetails.itemName === category.name && styles.categoryButtonActive
+                  styles.itemButton,
+                  priceDetails.itemName === item.name && styles.itemButtonActive
                 ]}
-                onPress={() => setPriceDetails(prev => ({
-                  ...prev,
-                  itemName: category.name,
-                  unitOfMeasure: category.defaultUnit
-                }))}
+                onPress={() => setPriceDetails({
+                  itemName: item.name,
+                  unitOfMeasure: item.defaultUnit,
+                  quantity: 1,
+                  price: 0
+                })}
               >
                 <Text style={[
-                  styles.categoryButtonText,
-                  priceDetails.itemName === category.name && styles.categoryButtonTextActive
+                  styles.itemButtonText,
+                  priceDetails.itemName === item.name && styles.itemButtonTextActive
                 ]}>
-                  {category.name}
+                  {item.name}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {selectedCategory && (
+        {selectedItem && (
           <>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Unit</Text>
               <View style={styles.buttonGroup}>
-                {selectedCategory.units.map(unit => (
+                {selectedItem.units.map(unit => (
                   <TouchableOpacity
                     key={unit}
                     style={[
@@ -453,7 +342,7 @@ export default function ReportFormModal({
             </View>
 
             <View style={styles.inputRow}>
-              <View style={styles.inputGroup}>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>Quantity</Text>
                 <TextInput
                   style={styles.numberInput}
@@ -466,8 +355,8 @@ export default function ReportFormModal({
                 />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Current Price (Birr)</Text>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.inputLabel}>Price (Birr)</Text>
                 <TextInput
                   style={styles.numberInput}
                   keyboardType="numeric"
@@ -479,53 +368,46 @@ export default function ReportFormModal({
                 />
               </View>
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Previous Price (Optional)</Text>
-              <TextInput
-                style={styles.numberInput}
-                keyboardType="numeric"
-                value={priceDetails.previousPrice?.toString() || ''}
-                onChangeText={(text) => setPriceDetails(prev => ({
-                  ...prev,
-                  previousPrice: parseFloat(text) || undefined
-                }))}
-                placeholder="Enter previous price"
-              />
-            </View>
           </>
         )}
       </View>
     );
   };
 
-  const renderFuelStationSelector = () => (
-    <View style={styles.stationContainer}>
-      <Text style={styles.sectionTitle}>Select Fuel Station</Text>
-      
-      {nearbyStations.map(station => (
-        <TouchableOpacity
-          key={station.id}
-          style={[
-            styles.stationButton,
-            selectedStation?.id === station.id && styles.stationButtonActive
-          ]}
-          onPress={() => setSelectedStation(station)}
-        >
-          <View style={styles.stationInfo}>
-            <Text style={styles.stationName}>{station.name}</Text>
-            <Text style={styles.stationAddress}>{station.address}</Text>
-          </View>
-          <View style={[
-            styles.radioButton,
-            selectedStation?.id === station.id && styles.radioButtonActive
-          ]}>
-            {selectedStation?.id === station.id && (
-              <View style={styles.radioButtonInner} />
-            )}
-          </View>
-        </TouchableOpacity>
-      ))}
+  const renderDescriptionInput = () => (
+    <View style={styles.descriptionContainer}>
+      <Text style={styles.sectionTitle}>Description</Text>
+      <TextInput
+        style={styles.descriptionInput}
+        placeholder="Add your description here..."
+        value={customDescription}
+        onChangeText={setCustomDescription}
+        multiline
+        numberOfLines={3}
+      />
+      <Text style={styles.orText}>or choose a quick description:</Text>
+      <View style={styles.quickDescriptions}>
+        {selectedCategory?.descriptions.map((desc, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.descriptionOption,
+              description === desc && styles.descriptionOptionActive
+            ]}
+            onPress={() => {
+              setDescription(desc);
+              setCustomDescription('');
+            }}
+          >
+            <Text style={[
+              styles.descriptionOptionText,
+              description === desc && styles.descriptionOptionTextActive
+            ]}>
+              {desc}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 
@@ -560,10 +442,8 @@ export default function ReportFormModal({
                   <Text style={styles.backButtonText}>← Change Category</Text>
                 </TouchableOpacity>
 
-                {renderMetadataInputs()}
-                {renderDescriptionOptions()}
                 {category === 'price' && renderPriceInputs()}
-                {category === 'fuel' && renderFuelStationSelector()}
+                {renderDescriptionInput()}
 
                 <View style={styles.locationContainer}>
                   <View style={styles.locationHeader}>
@@ -700,115 +580,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: LightTheme.accent,
   },
-  metadataContainer: {
-    marginBottom: 24,
-  },
-  toggleGroup: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: LightTheme.border,
-    alignItems: 'center',
-  },
-  toggleButtonActive: {
-    backgroundColor: LightTheme.accent,
-    borderColor: LightTheme.accent,
-  },
-  toggleButtonText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: LightTheme.text,
-  },
-  toggleButtonTextActive: {
-    color: LightTheme.white,
-  },
-  severityContainer: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: LightTheme.text,
-    marginBottom: 12,
-  },
-  severityButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  severityButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: LightTheme.neutral,
-    alignItems: 'center',
-  },
-  severityButtonActive: {
-    backgroundColor: LightTheme.accent,
-  },
-  severityButtonText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: LightTheme.secondaryText,
-  },
-  severityButtonTextActive: {
-    color: LightTheme.white,
-  },
-  subcategoryContainer: {
-    marginBottom: 16,
-  },
-  subcategoryButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  subcategoryButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: LightTheme.neutral,
-  },
-  subcategoryButtonActive: {
-    backgroundColor: LightTheme.accent,
-  },
-  subcategoryButtonText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: LightTheme.secondaryText,
-  },
-  subcategoryButtonTextActive: {
-    color: LightTheme.white,
-  },
-  descriptionContainer: {
-    marginBottom: 24,
-  },
-  descriptionOptions: {
-    gap: 8,
-  },
-  descriptionOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: LightTheme.neutral,
-  },
-  descriptionOptionActive: {
-    backgroundColor: LightTheme.accent,
-  },
-  descriptionOptionText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: LightTheme.secondaryText,
-  },
-  descriptionOptionTextActive: {
-    color: LightTheme.white,
-  },
   locationContainer: {
     backgroundColor: LightTheme.white,
     borderRadius: 12,
@@ -891,6 +662,51 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: LightTheme.border,
   },
+  descriptionContainer: {
+    marginBottom: 24,
+  },
+  descriptionInput: {
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    borderRadius: 8,
+    padding: 12,
+    minHeight: 80,
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: LightTheme.text,
+    backgroundColor: LightTheme.white,
+    textAlignVertical: 'top',
+  },
+  orText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: LightTheme.secondaryText,
+    marginVertical: 12,
+    textAlign: 'center',
+  },
+  quickDescriptions: {
+    gap: 8,
+  },
+  itemButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: LightTheme.neutral,
+    marginBottom: 8,
+    width: '100%',
+  },
+  itemButtonActive: {
+    backgroundColor: LightTheme.accent,
+  },
+  itemButtonText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: LightTheme.secondaryText,
+    textAlign: 'center',
+  },
+  itemButtonTextActive: {
+    color: LightTheme.white,
+  },
   priceInputContainer: {
     marginBottom: 24,
   },
@@ -902,22 +718,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: LightTheme.text,
     marginBottom: 8,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  numberInput: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: LightTheme.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: LightTheme.text,
-    backgroundColor: LightTheme.white,
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -941,54 +741,42 @@ const styles = StyleSheet.create({
   unitButtonTextActive: {
     color: LightTheme.white,
   },
-  stationContainer: {
-    marginBottom: 24,
-  },
-  stationButton: {
+  inputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: LightTheme.white,
-    borderRadius: 12,
+    gap: 16,
+  },
+  numberInput: {
+    height: 48,
     borderWidth: 1,
     borderColor: LightTheme.border,
-    marginBottom: 8,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: LightTheme.text,
+    backgroundColor: LightTheme.white,
   },
-  stationButtonActive: {
-    borderColor: LightTheme.accent,
-    backgroundColor: 'rgba(63, 81, 181, 0.05)',
-  },
-  stationInfo: {
-    flex: 1,
-  },
-  stationName: {
+  sectionTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: LightTheme.text,
-    marginBottom: 4,
+    marginBottom: 12,
   },
-  stationAddress: {
+  descriptionOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: LightTheme.neutral,
+  },
+  descriptionOptionActive: {
+    backgroundColor: LightTheme.accent,
+  },
+  descriptionOptionText: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: LightTheme.secondaryText,
   },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: LightTheme.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioButtonActive: {
-    borderColor: LightTheme.accent,
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: LightTheme.accent,
+  descriptionOptionTextActive: {
+    color: LightTheme.white,
   },
 });
