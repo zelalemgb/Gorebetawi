@@ -6,10 +6,11 @@ const config = getDefaultConfig(__dirname);
 config.resolver = {
   ...config.resolver,
   resolveRequest: (context, moduleName, platform) => {
-    // Redirect react-native-maps and its native dependencies to empty module on web platform
+    // Redirect react-native-maps and its dependencies to empty module on web platform
     if (platform === 'web') {
       if (
         moduleName === 'react-native-maps' ||
+        moduleName.startsWith('react-native-maps/') ||
         moduleName === 'react-native/Libraries/Utilities/codegenNativeCommands'
       ) {
         return {
