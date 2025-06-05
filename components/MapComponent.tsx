@@ -1,6 +1,7 @@
 import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { Report } from '@/types';
+import { Colors } from '@/constants/Colors';
 
 interface MapComponentProps {
   center: [number, number];
@@ -13,16 +14,23 @@ interface MapComponentProps {
 
 export default function MapComponent(props: MapComponentProps) {
   if (Platform.OS === 'web') {
-    const WebMapComponent = require('./WebMapComponent').default;
+    // Dynamically import the web map component only when running on web
+    const WebMapComponent = require('./WebMapComponent.tsx').default;
     return <WebMapComponent {...props} />;
-  } else {
-    const NativeMapComponent = require('./NativeMapComponent').default;
-    return <NativeMapComponent {...props} />;
   }
+
+  // Return a placeholder for non-web platforms
+  return (
+    <View style={styles.container}>
+      <Text>Map is only available on web platform</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
