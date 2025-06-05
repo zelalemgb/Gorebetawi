@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Report, ReportCategory } from '@/types';
+import { Report, ReportCategory, FuelStation } from '@/types';
 
 // Mock fuel stations data
 const MOCK_FUEL_STATIONS: FuelStation[] = [
@@ -151,7 +151,14 @@ export function useReports() {
       try {
         // In a real app, you would fetch data from an API
         await new Promise(resolve => setTimeout(resolve, 1000));
-        setReports(MOCK_REPORTS);
+        
+        // Filter out expired sponsored reports
+        const currentTime = Date.now();
+        const validReports = MOCK_REPORTS.filter(report => 
+          !report.isSponsored || !report.expiresAt || report.expiresAt > currentTime
+        );
+        
+        setReports(validReports);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch reports');
@@ -180,6 +187,36 @@ export function useReports() {
       return newReport.id;
     } catch (err) {
       setError('Failed to submit report');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Add a sponsored report
+  const addSponsoredReport = useCallback(async (
+    report: Omit<Report, 'id' | 'timestamp' | 'confirmations'> & { 
+      sponsoredBy: string;
+      expiresAt: number;
+    }
+  ) => {
+    try {
+      setLoading(true);
+      // In a real app, you would submit to an API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newReport: Report = {
+        ...report,
+        id: Math.random().toString(36).substring(7),
+        timestamp: Date.now(),
+        confirmations: 0,
+        isSponsored: true,
+      };
+      
+      setReports(prev => [newReport, ...prev]);
+      return newReport.id;
+    } catch (err) {
+      setError('Failed to submit sponsored report');
       return null;
     } finally {
       setLoading(false);
@@ -219,6 +256,7 @@ export function useReports() {
     return reports.filter(report => categories.includes(report.category));
   }, [reports]);
 
+  // Get nearby fuel stations
   const getNearbyFuelStations = useCallback((latitude: number, longitude: number, radius: number = 2) => {
     // In a real app, this would filter based on actual distance calculation
     return MOCK_FUEL_STATIONS;
@@ -229,6 +267,7 @@ export function useReports() {
     loading,
     error,
     addReport,
+    addSponsoredReport,
     confirmReport,
     filterReportsByCategory,
     getNearbyFuelStations,
