@@ -1,5 +1,12 @@
 // Report Types
-export type ReportCategory = 'safety' | 'fuel' | 'price' | 'environment';
+export type ReportCategory = 
+  | 'light' 
+  | 'water' 
+  | 'fuel' 
+  | 'price' 
+  | 'traffic' 
+  | 'infrastructure' 
+  | 'environment';
 
 export type ReportStatus = 'pending' | 'confirmed' | 'resolved';
 
@@ -21,21 +28,11 @@ export interface Report {
   userId: string;
   anonymous: boolean;
   confirmations: number;
-}
-
-export interface UserPreferences {
-  interestedCategories: ReportCategory[];
-  alwaysAnonymous: boolean;
-  enableLocationAccess: boolean;
-}
-
-export interface User {
-  id: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  role?: UserRole;
-  preferences: UserPreferences;
-  reports: number;
-  confirmations: number;
+  metadata?: {
+    severity?: 'light' | 'moderate' | 'heavy';
+    availability?: boolean;
+    queueLength?: 'none' | 'short' | 'medium' | 'long';
+    duration?: 'new' | '2-3days' | 'ongoing';
+    subcategory?: string;
+  };
 }
