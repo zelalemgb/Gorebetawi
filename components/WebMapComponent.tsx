@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Report } from '@/types';
 import { Colors } from '@/constants/Colors';
-import dynamic from 'next/dynamic';
+import WebMapComponentClient from './WebMapComponentClient';
 
 interface MapComponentProps {
   center: [number, number];
@@ -13,21 +13,16 @@ interface MapComponentProps {
   onScroll?: (event: any) => void;
 }
 
-// Dynamically import the map component to avoid SSR issues
-const MapWithNoSSR = dynamic(
-  () => import('./WebMapComponentClient'), 
-  { 
-    ssr: false,
-    loading: () => (
+export default function WebMapComponent(props: MapComponentProps) {
+  return (
+    <Suspense fallback={
       <View style={styles.loadingContainer}>
         <View style={styles.loadingIndicator} />
       </View>
-    )
-  }
-);
-
-export default function WebMapComponent(props: MapComponentProps) {
-  return <MapWithNoSSR {...props} />;
+    }>
+      <WebMapComponentClient {...props} />
+    </Suspense>
+  );
 }
 
 const styles = StyleSheet.create({

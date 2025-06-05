@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import * as Location from 'expo-location';
 
 interface LocationState {
@@ -16,7 +17,7 @@ export function useLocation() {
   const mounted = useRef(true);
 
   useEffect(() => {
-    let locationSubscription: Location.LocationSubscription;
+    let locationSubscription: Location.LocationSubscription | null = null;
 
     (async () => {
       try {
@@ -37,7 +38,6 @@ export function useLocation() {
           accuracy: Location.Accuracy.Balanced,
         });
         
-        // Check if component is still mounted before updating state
         if (!mounted.current) return;
         
         setState({
@@ -46,22 +46,24 @@ export function useLocation() {
           loading: false,
         });
 
-        // Subscribe to location updates
-        locationSubscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.Balanced,
-            timeInterval: 10000, // Update every 10 seconds
-            distanceInterval: 10, // Update if moved by 10 meters
-          },
-          (newLocation) => {
-            if (mounted.current) {
-              setState(prev => ({
-                ...prev,
-                location: newLocation,
-              }));
+        // Only set up location subscription on native platforms
+        if (Platform.OS !== 'web') {
+          locationSubscription = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 10000,
+              distanceInterval: 10,
+            },
+            (newLocation) => {
+              if (mounted.current) {
+                setState(prev => ({
+                  ...prev,
+                  location: newLocation,
+                }));
+              }
             }
-          }
-        );
+          );
+        }
       } catch (error) {
         if (mounted.current) {
           setState({
@@ -73,10 +75,9 @@ export function useLocation() {
       }
     })();
 
-    // Cleanup subscription and mounted ref on unmount
     return () => {
       mounted.current = false;
-      if (locationSubscription) {
+      if (locationSubscription && Platform.OS !== 'web') {
         locationSubscription.remove();
       }
     };
