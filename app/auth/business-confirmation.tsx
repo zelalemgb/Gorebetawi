@@ -7,7 +7,7 @@ import {
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CheckCircle2 } from 'lucide-react-native';
+import { CircleCheck as CheckCircle2 } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 
