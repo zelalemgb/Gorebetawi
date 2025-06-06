@@ -6,7 +6,8 @@ export type ReportCategory =
   | 'price' 
   | 'traffic' 
   | 'infrastructure' 
-  | 'environment';
+  | 'environment'
+  | 'safety';
 
 export type ReportStatus = 'pending' | 'confirmed' | 'resolved';
 
@@ -15,6 +16,20 @@ export type UserRole = 'observer' | 'reporter' | 'validator' | 'partner' | 'busi
 export type BusinessType = 'fuel_station' | 'retail_shop' | 'market' | 'other';
 
 export type BusinessStatus = 'pending' | 'verified' | 'rejected';
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role?: UserRole;
+  preferences?: {
+    interestedCategories?: ReportCategory[];
+    alwaysAnonymous?: boolean;
+    enableLocationAccess?: boolean;
+  };
+  reports?: number;
+  confirmations?: number;
+}
 
 export interface Business {
   id: string;

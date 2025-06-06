@@ -1,68 +1,110 @@
 import { useState, useCallback } from 'react';
 import { Business, BusinessType, ReportCategory } from '@/types';
-
-// Mock data for demonstration
-const MOCK_BUSINESSES: Business[] = [
-  {
-    id: 'total1',
-    name: 'Total Bole',
-    type: 'fuel_station',
-    category: 'fuel',
-    contactPerson: 'John Doe',
-    phone: '+251911234567',
-    location: {
-      latitude: 8.9778,
-      longitude: 38.7991,
-    },
-    address: 'Bole Road, Near Bole Medhanialem',
-    logoUrl: 'https://example.com/total-logo.png',
-    status: 'verified',
-    createdAt: Date.now() - 3600000 * 24 * 7, // 7 days ago
-    updatedAt: Date.now() - 3600000 * 24 * 7,
-  },
-  {
-    id: 'market1',
-    name: 'Bole Rwanda Market',
-    type: 'market',
-    category: 'price',
-    contactPerson: 'Jane Smith',
-    phone: '+251922345678',
-    location: {
-      latitude: 8.9845,
-      longitude: 38.7925,
-    },
-    address: 'Rwanda Street, Near Rwanda Embassy',
-    status: 'pending',
-    createdAt: Date.now() - 3600000 * 2, // 2 hours ago
-    updatedAt: Date.now() - 3600000 * 2,
-  },
-];
+import { 
+  createBusiness, 
+  getBusinesses, 
+  updateBusinessStatus as updateBusinessStatusDB 
+} from '@/lib/supabase';
 
 export function useBusiness() {
-  const [businesses, setBusinesses] = useState<Business[]>(MOCK_BUSINESSES);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchBusinesses = useCallback(async (filters?: {
+    status?: Business['status'];
+    category?: ReportCategory;
+    userId?: string;
+  }) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await getBusinesses({
+        status: filters?.status,
+        category: filters?.category,
+        user_id: filters?.userId,
+      });
+
+      if (fetchError) throw fetchError;
+
+      // Transform database format to app format
+      const transformedBusinesses: Business[] = (data || []).map(dbBusiness => ({
+        id: dbBusiness.id,
+        name: dbBusiness.name,
+        type: dbBusiness.type as BusinessType,
+        category: dbBusiness.category as ReportCategory,
+        contactPerson: dbBusiness.contact_person,
+        phone: dbBusiness.phone,
+        location: {
+          latitude: dbBusiness.location[0],
+          longitude: dbBusiness.location[1],
+        },
+        address: dbBusiness.address,
+        logoUrl: dbBusiness.logo_url || undefined,
+        status: dbBusiness.status as Business['status'],
+        rejectionReason: dbBusiness.rejection_reason || undefined,
+        createdAt: new Date(dbBusiness.created_at).getTime(),
+        updatedAt: new Date(dbBusiness.updated_at).getTime(),
+      }));
+
+      setBusinesses(transformedBusinesses);
+      return transformedBusinesses;
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch businesses');
+      console.error('Error fetching businesses:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const registerBusiness = useCallback(async (
-    data: Omit<Business, 'id' | 'status' | 'createdAt' | 'updatedAt'>
+    data: Omit<Business, 'id' | 'status' | 'createdAt' | 'updatedAt'> & { userId: string }
   ) => {
     try {
       setLoading(true);
-      // In a real app, this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setError(null);
 
-      const newBusiness: Business = {
-        ...data,
-        id: Math.random().toString(36).substring(7),
-        status: 'pending',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+      const { data: newBusiness, error: createError } = await createBusiness({
+        name: data.name,
+        type: data.type,
+        category: data.category,
+        contact_person: data.contactPerson,
+        phone: data.phone,
+        location: [data.location.latitude, data.location.longitude],
+        address: data.address,
+        logo_url: data.logoUrl,
+        user_id: data.userId,
+      });
+
+      if (createError) throw createError;
+
+      // Transform and add to local state
+      const transformedBusiness: Business = {
+        id: newBusiness.id,
+        name: newBusiness.name,
+        type: newBusiness.type as BusinessType,
+        category: newBusiness.category as ReportCategory,
+        contactPerson: newBusiness.contact_person,
+        phone: newBusiness.phone,
+        location: {
+          latitude: newBusiness.location[0],
+          longitude: newBusiness.location[1],
+        },
+        address: newBusiness.address,
+        logoUrl: newBusiness.logo_url || undefined,
+        status: newBusiness.status as Business['status'],
+        rejectionReason: newBusiness.rejection_reason || undefined,
+        createdAt: new Date(newBusiness.created_at).getTime(),
+        updatedAt: new Date(newBusiness.updated_at).getTime(),
       };
 
-      setBusinesses(prev => [...prev, newBusiness]);
-      return newBusiness.id;
-    } catch (err) {
-      setError('Failed to register business');
+      setBusinesses(prev => [transformedBusiness, ...prev]);
+      return transformedBusiness.id;
+    } catch (err: any) {
+      setError(err.message || 'Failed to register business');
+      console.error('Error registering business:', err);
       return null;
     } finally {
       setLoading(false);
@@ -76,8 +118,15 @@ export function useBusiness() {
   ) => {
     try {
       setLoading(true);
-      // In a real app, this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setError(null);
+
+      const { error: updateError } = await updateBusinessStatusDB(
+        businessId, 
+        status, 
+        rejectionReason
+      );
+
+      if (updateError) throw updateError;
 
       setBusinesses(prev => 
         prev.map(business => 
@@ -93,8 +142,9 @@ export function useBusiness() {
       );
 
       return true;
-    } catch (err) {
-      setError('Failed to update business status');
+    } catch (err: any) {
+      setError(err.message || 'Failed to update business status');
+      console.error('Error updating business status:', err);
       return false;
     } finally {
       setLoading(false);
@@ -117,5 +167,6 @@ export function useBusiness() {
     updateBusinessStatus,
     getBusinessById,
     getVerifiedBusinessesByCategory,
+    fetchBusinesses,
   };
 }

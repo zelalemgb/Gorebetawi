@@ -16,6 +16,7 @@ import { ArrowLeft, Building, Phone, MapPin, Upload, Store, Fuel, ShoppingBag } 
 import { LightTheme } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 import { useBusiness } from '@/hooks/useBusiness';
+import { useAuth } from '@/hooks/useAuth';
 import { BusinessType, ReportCategory } from '@/types';
 import { useLocation } from '@/hooks/useLocation';
 
@@ -50,6 +51,7 @@ const CATEGORIES: { key: ReportCategory; label: string }[] = [
 export default function BusinessRegistrationScreen() {
   const router = useRouter();
   const { registerBusiness, loading, error } = useBusiness();
+  const { user } = useAuth();
   const { location, getAddressFromCoordinates } = useLocation();
   
   const [businessName, setBusinessName] = useState('');
@@ -111,7 +113,7 @@ export default function BusinessRegistrationScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm() || !location) return;
+    if (!validateForm() || !location || !user) return;
     
     try {
       const businessData = {
@@ -129,10 +131,13 @@ export default function BusinessRegistrationScreen() {
           location.coords.longitude
         ) || '',
         logoUrl,
+        userId: user.id,
       };
       
-      await registerBusiness(businessData);
-      router.push('/auth/business-confirmation');
+      const businessId = await registerBusiness(businessData);
+      if (businessId) {
+        router.push('/auth/business-confirmation');
+      }
     } catch (err) {
       console.error('Error registering business:', err);
     }
@@ -299,7 +304,7 @@ export default function BusinessRegistrationScreen() {
             title="Submit Registration"
             onPress={handleSubmit}
             loading={loading}
-            disabled={loading}
+            disabled={loading || !user}
           />
         </View>
       </KeyboardAvoidingView>

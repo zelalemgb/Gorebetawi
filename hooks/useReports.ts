@@ -1,176 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Report, ReportCategory, FuelStation } from '@/types';
-
-// Mock fuel stations data
-const MOCK_FUEL_STATIONS: FuelStation[] = [
-  {
-    id: 'total1',
-    name: 'Total Bole',
-    address: 'Bole Road, Near Bole Medhanialem',
-    location: { latitude: 8.9778, longitude: 38.7991 }
-  },
-  {
-    id: 'noc1',
-    name: 'NOC Bole',
-    address: 'Bole Atlas, Near Atlas Hotel',
-    location: { latitude: 8.9934, longitude: 38.7978 }
-  },
-  {
-    id: 'oilibya1',
-    name: 'OiLibya Rwanda',
-    address: 'Rwanda Street, Near Rwanda Embassy',
-    location: { latitude: 8.9845, longitude: 38.7925 }
-  }
-];
-
-const MOCK_REPORTS: Report[] = [
-  {
-    id: '1',
-    title: 'Road Construction Delay',
-    description: 'Major delays due to ongoing road construction near Bole Medhanialem Church. Heavy machinery blocking one lane.',
-    category: 'safety',
-    status: 'pending',
-    location: {
-      latitude: 8.9898,
-      longitude: 38.7967,
-    },
-    address: 'Bole Medhanialem, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 2,
-    imageUrl: 'https://images.pexels.com/photos/1117452/pexels-photo-1117452.jpeg',
-    userId: 'user123',
-    anonymous: false,
-    confirmations: 5,
-  },
-  {
-    id: '2',
-    title: 'Fuel Shortage at Total',
-    description: 'Total gas station near Bole Airport is running low on fuel. Long queues forming.',
-    category: 'fuel',
-    status: 'confirmed',
-    location: {
-      latitude: 8.9778,
-      longitude: 38.7991,
-    },
-    address: 'Bole Airport Road, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 4,
-    userId: 'user456',
-    anonymous: true,
-    confirmations: 12,
-  },
-  {
-    id: '3',
-    title: 'Price Surge at Local Market',
-    description: 'Significant price increases for basic goods at Bole Rwanda Market. Prices up by 15% since last week.',
-    category: 'price',
-    status: 'pending',
-    location: {
-      latitude: 8.9845,
-      longitude: 38.7925,
-    },
-    address: 'Bole Rwanda Market, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 8,
-    userId: 'user789',
-    anonymous: false,
-    confirmations: 3,
-  },
-  {
-    id: '4',
-    title: 'Waste Collection Issue',
-    description: 'Uncollected garbage near Bole Brass Hospital causing environmental concerns. Need immediate attention.',
-    category: 'environment',
-    status: 'confirmed',
-    location: {
-      latitude: 8.9912,
-      longitude: 38.7899,
-    },
-    address: 'Bole Brass Area, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 24,
-    imageUrl: 'https://images.pexels.com/photos/2768957/pexels-photo-2768957.jpeg',
-    userId: 'user123',
-    anonymous: false,
-    confirmations: 8,
-  },
-  {
-    id: '5',
-    title: 'Traffic Signal Malfunction',
-    description: 'Traffic lights not working at Bole Atlas intersection. Causing traffic congestion and safety concerns.',
-    category: 'safety',
-    status: 'pending',
-    location: {
-      latitude: 8.9867,
-      longitude: 38.7945,
-    },
-    address: 'Bole Atlas, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 1,
-    userId: 'user456',
-    anonymous: true,
-    confirmations: 4,
-  },
-  {
-    id: '6',
-    title: 'Water Supply Interruption',
-    description: 'No water supply in Bole Bulbula area for the past 12 hours. Multiple households affected.',
-    category: 'environment',
-    status: 'pending',
-    location: {
-      latitude: 8.9823,
-      longitude: 38.8012,
-    },
-    address: 'Bole Bulbula, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 12,
-    userId: 'user789',
-    anonymous: false,
-    confirmations: 6,
-  },
-  {
-    id: '7',
-    title: 'New Fuel Prices',
-    description: 'NOC gas station implementing new fuel prices. Premium now at 48 birr/liter.',
-    category: 'price',
-    status: 'confirmed',
-    location: {
-      latitude: 8.9934,
-      longitude: 38.7978,
-    },
-    address: 'Bole NOC Station, Addis Ababa',
-    timestamp: Date.now() - 3600000 * 6,
-    userId: 'user123',
-    anonymous: true,
-    confirmations: 15,
-  }
-];
+import { 
+  createReport, 
+  getReports, 
+  updateReportConfirmations,
+  getBusinesses 
+} from '@/lib/supabase';
 
 export function useReports() {
-  const [reports, setReports] = useState<Report[]>(MOCK_REPORTS);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(true);
 
   // Fetch reports
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        // In a real app, you would fetch data from an API
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        if (!mounted.current) return;
-
-        // Filter out expired sponsored reports
-        const currentTime = Date.now();
-        const validReports = MOCK_REPORTS.filter(report => 
-          !report.isSponsored || !report.expiresAt || report.expiresAt > currentTime
-        );
-        
-        setReports(validReports);
-        setLoading(false);
-      } catch (err) {
-        if (mounted.current) {
-          setError('Failed to fetch reports');
-          setLoading(false);
-        }
-      }
-    };
-
     fetchReports();
 
     return () => {
@@ -178,27 +22,112 @@ export function useReports() {
     };
   }, []);
 
+  const fetchReports = async (filters?: {
+    category?: ReportCategory[];
+    status?: string;
+    limit?: number;
+  }) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await getReports({
+        category: filters?.category,
+        status: filters?.status,
+        limit: filters?.limit || 50,
+      });
+
+      if (fetchError) throw fetchError;
+
+      if (!mounted.current) return;
+
+      // Transform database format to app format
+      const transformedReports: Report[] = (data || []).map(dbReport => ({
+        id: dbReport.id,
+        title: dbReport.title,
+        description: dbReport.description || undefined,
+        category: dbReport.category as ReportCategory,
+        status: dbReport.status as Report['status'],
+        location: {
+          latitude: dbReport.location[0],
+          longitude: dbReport.location[1],
+        },
+        address: dbReport.address || undefined,
+        timestamp: new Date(dbReport.created_at).getTime(),
+        imageUrl: dbReport.image_url || undefined,
+        userId: dbReport.user_id || 'anonymous',
+        anonymous: dbReport.anonymous,
+        confirmations: dbReport.confirmations,
+        isSponsored: dbReport.is_sponsored,
+        sponsoredBy: dbReport.sponsored_by || undefined,
+        expiresAt: dbReport.expires_at ? new Date(dbReport.expires_at).getTime() : undefined,
+        metadata: dbReport.metadata || undefined,
+      }));
+
+      setReports(transformedReports);
+    } catch (err: any) {
+      if (mounted.current) {
+        setError(err.message || 'Failed to fetch reports');
+        console.error('Error fetching reports:', err);
+      }
+    } finally {
+      if (mounted.current) {
+        setLoading(false);
+      }
+    }
+  };
+
   // Add a new report
   const addReport = useCallback(async (report: Omit<Report, 'id' | 'timestamp' | 'confirmations'>) => {
     try {
       setLoading(true);
-      // In a real app, you would submit to an API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      setError(null);
+
+      const { data, error: createError } = await createReport({
+        title: report.title,
+        description: report.description,
+        category: report.category,
+        location: [report.location.latitude, report.location.longitude],
+        address: report.address,
+        image_url: report.imageUrl,
+        user_id: report.userId === 'anonymous' ? null : report.userId,
+        anonymous: report.anonymous,
+        metadata: report.metadata,
+      });
+
+      if (createError) throw createError;
+
       if (!mounted.current) return null;
 
+      // Transform and add to local state
       const newReport: Report = {
-        ...report,
-        id: Math.random().toString(36).substring(7),
-        timestamp: Date.now(),
-        confirmations: 0,
+        id: data.id,
+        title: data.title,
+        description: data.description || undefined,
+        category: data.category as ReportCategory,
+        status: data.status as Report['status'],
+        location: {
+          latitude: data.location[0],
+          longitude: data.location[1],
+        },
+        address: data.address || undefined,
+        timestamp: new Date(data.created_at).getTime(),
+        imageUrl: data.image_url || undefined,
+        userId: data.user_id || 'anonymous',
+        anonymous: data.anonymous,
+        confirmations: data.confirmations,
+        isSponsored: data.is_sponsored,
+        sponsoredBy: data.sponsored_by || undefined,
+        expiresAt: data.expires_at ? new Date(data.expires_at).getTime() : undefined,
+        metadata: data.metadata || undefined,
       };
-      
+
       setReports(prev => [newReport, ...prev]);
       return newReport.id;
-    } catch (err) {
+    } catch (err: any) {
       if (mounted.current) {
-        setError('Failed to submit report');
+        setError(err.message || 'Failed to submit report');
+        console.error('Error creating report:', err);
       }
       return null;
     } finally {
@@ -217,24 +146,53 @@ export function useReports() {
   ) => {
     try {
       setLoading(true);
-      // In a real app, you would submit to an API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      setError(null);
+
+      const { data, error: createError } = await createReport({
+        title: report.title,
+        description: report.description,
+        category: report.category,
+        location: [report.location.latitude, report.location.longitude],
+        address: report.address,
+        image_url: report.imageUrl,
+        user_id: report.userId === 'anonymous' ? null : report.userId,
+        anonymous: report.anonymous,
+        metadata: report.metadata,
+      });
+
+      if (createError) throw createError;
+
       if (!mounted.current) return null;
 
+      // Transform and add to local state
       const newReport: Report = {
-        ...report,
-        id: Math.random().toString(36).substring(7),
-        timestamp: Date.now(),
-        confirmations: 0,
+        id: data.id,
+        title: data.title,
+        description: data.description || undefined,
+        category: data.category as ReportCategory,
+        status: data.status as Report['status'],
+        location: {
+          latitude: data.location[0],
+          longitude: data.location[1],
+        },
+        address: data.address || undefined,
+        timestamp: new Date(data.created_at).getTime(),
+        imageUrl: data.image_url || undefined,
+        userId: data.user_id || 'anonymous',
+        anonymous: data.anonymous,
+        confirmations: data.confirmations,
         isSponsored: true,
+        sponsoredBy: report.sponsoredBy,
+        expiresAt: report.expiresAt,
+        metadata: data.metadata || undefined,
       };
-      
+
       setReports(prev => [newReport, ...prev]);
       return newReport.id;
-    } catch (err) {
+    } catch (err: any) {
       if (mounted.current) {
-        setError('Failed to submit sponsored report');
+        setError(err.message || 'Failed to submit sponsored report');
+        console.error('Error creating sponsored report:', err);
       }
       return null;
     } finally {
@@ -247,9 +205,10 @@ export function useReports() {
   // Confirm a report
   const confirmReport = useCallback(async (reportId: string) => {
     try {
-      // In a real app, you would submit to an API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      const { error: updateError } = await updateReportConfirmations(reportId);
+
+      if (updateError) throw updateError;
+
       if (!mounted.current) return false;
 
       setReports(prev => 
@@ -265,9 +224,10 @@ export function useReports() {
       );
       
       return true;
-    } catch (err) {
+    } catch (err: any) {
       if (mounted.current) {
-        setError('Failed to confirm report');
+        setError(err.message || 'Failed to confirm report');
+        console.error('Error confirming report:', err);
       }
       return false;
     }
@@ -282,9 +242,36 @@ export function useReports() {
   }, [reports]);
 
   // Get nearby fuel stations
-  const getNearbyFuelStations = useCallback((latitude: number, longitude: number, radius: number = 2) => {
-    // In a real app, this would filter based on actual distance calculation
-    return MOCK_FUEL_STATIONS;
+  const getNearbyFuelStations = useCallback(async (
+    latitude: number, 
+    longitude: number, 
+    radius: number = 2
+  ): Promise<FuelStation[]> => {
+    try {
+      const { data, error } = await getBusinesses({
+        status: 'verified',
+        category: 'fuel',
+      });
+
+      if (error) throw error;
+
+      // Transform database format to app format
+      const fuelStations: FuelStation[] = (data || []).map(business => ({
+        id: business.id,
+        name: business.name,
+        address: business.address,
+        location: {
+          latitude: business.location[0],
+          longitude: business.location[1],
+        },
+      }));
+
+      // In a real app, you would filter by distance here
+      return fuelStations;
+    } catch (err) {
+      console.error('Error fetching fuel stations:', err);
+      return [];
+    }
   }, []);
 
   return {
@@ -296,5 +283,6 @@ export function useReports() {
     confirmReport,
     filterReportsByCategory,
     getNearbyFuelStations,
+    refreshReports: fetchReports,
   };
 }

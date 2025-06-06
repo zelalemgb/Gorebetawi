@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
-import { supabase, getCurrentUser } from '@/lib/supabase';
+import { 
+  supabase, 
+  getCurrentUser, 
+  signInWithEmail, 
+  signUpWithEmail, 
+  signInWithSocial,
+  signOut as supabaseSignOut,
+  createUserProfile,
+  updateUserProfile,
+  getUserProfile
+} from '@/lib/supabase';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -11,18 +21,48 @@ export function useAuth() {
     checkUser();
     
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata.name,
-          role: session.user.user_metadata.role,
-          preferences: session.user.user_metadata.preferences,
-        });
+        try {
+          // Get or create user profile
+          const { data: profile, error: profileError } = await getUserProfile(session.user.id);
+          
+          if (profileError && profileError.code === 'PGRST116') {
+            // User profile doesn't exist, create it
+            await createUserProfile(session.user.id, {
+              email: session.user.email!,
+              name: session.user.user_metadata.name || session.user.user_metadata.full_name,
+              role: session.user.user_metadata.role || 'observer',
+              preferences: session.user.user_metadata.preferences || {},
+            });
+            
+            // Fetch the newly created profile
+            const { data: newProfile } = await getUserProfile(session.user.id);
+            if (newProfile) {
+              setUser({
+                id: newProfile.id,
+                email: newProfile.email,
+                name: newProfile.name,
+                role: newProfile.role as User['role'],
+                preferences: newProfile.preferences,
+              });
+            }
+          } else if (profile) {
+            setUser({
+              id: profile.id,
+              email: profile.email,
+              name: profile.name,
+              role: profile.role as User['role'],
+              preferences: profile.preferences,
+            });
+          }
+        } catch (err) {
+          console.error('Error handling auth state change:', err);
+        }
       } else {
         setUser(null);
       }
+      setLoading(false);
     });
 
     return () => {
@@ -37,13 +77,18 @@ export function useAuth() {
       if (authError) throw authError;
       
       if (authUser) {
-        setUser({
-          id: authUser.id,
-          email: authUser.email!,
-          name: authUser.user_metadata.name,
-          role: authUser.user_metadata.role,
-          preferences: authUser.user_metadata.preferences,
-        });
+        // Get user profile from database
+        const { data: profile, error: profileError } = await getUserProfile(authUser.id);
+        
+        if (profile) {
+          setUser({
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+            role: profile.role as User['role'],
+            preferences: profile.preferences,
+          });
+        }
       }
     } catch (err) {
       console.error('Error checking auth state:', err);
@@ -58,10 +103,7 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error: signInError } = await signInWithEmail(email, password);
 
       if (signInError) throw signInError;
       
@@ -79,13 +121,7 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        }
-      });
+      const { error: signUpError } = await signUpWithEmail(email, password);
 
       if (signUpError) throw signUpError;
       
@@ -98,12 +134,30 @@ export function useAuth() {
     }
   };
 
+  const signInWithSocialProvider = async (provider: 'google' | 'apple') => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { error: socialError } = await signInWithSocial(provider);
+
+      if (socialError) throw socialError;
+      
+      return true;
+    } catch (err: any) {
+      setError(err.message || `Failed to sign in with ${provider}`);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const { error: signOutError } = await supabase.auth.signOut();
+      const { error: signOutError } = await supabaseSignOut();
       
       if (signOutError) throw signOutError;
       
@@ -120,15 +174,13 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { role }
-      });
+      if (!user) throw new Error('No user logged in');
+
+      const { error: updateError } = await updateUserProfile(user.id, { role });
 
       if (updateError) throw updateError;
       
-      if (user) {
-        setUser({ ...user, role });
-      }
+      setUser({ ...user, role });
     } catch (err: any) {
       setError(err.message || 'Failed to update role');
     } finally {
@@ -141,26 +193,23 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { 
-          preferences: {
-            ...(user?.preferences || {}),
-            ...preferences
-          }
-        }
+      if (!user) throw new Error('No user logged in');
+
+      const updatedPreferences = {
+        ...(user.preferences || {}),
+        ...preferences
+      };
+
+      const { error: updateError } = await updateUserProfile(user.id, { 
+        preferences: updatedPreferences 
       });
 
       if (updateError) throw updateError;
       
-      if (user) {
-        setUser({
-          ...user,
-          preferences: {
-            ...(user.preferences || {}),
-            ...preferences
-          }
-        });
-      }
+      setUser({
+        ...user,
+        preferences: updatedPreferences
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to update preferences');
     } finally {
@@ -174,6 +223,7 @@ export function useAuth() {
     error,
     signIn,
     signUp,
+    signInWithSocial: signInWithSocialProvider,
     signOut,
     updateUserRole,
     updateUserPreferences,
