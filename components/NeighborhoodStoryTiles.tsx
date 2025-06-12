@@ -8,7 +8,7 @@ import Animated, {
   withSequence,
   interpolate
 } from 'react-native-reanimated';
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react-native';
+import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Report } from '@/types';
 
