@@ -5,6 +5,7 @@ import { Search, Menu } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
+import { useUserTrail } from '@/hooks/useUserTrail';
 import { Report, ReportCategory } from '@/types';
 import ReportPreview from '@/components/ReportPreview';
 import FloatingActionButton from '@/components/FloatingActionButton';
@@ -13,11 +14,22 @@ import MapComponent from '@/components/MapComponent';
 import FloatingIncidentSummary from '@/components/FloatingIncidentSummary';
 import CategoryFilterChips from '@/components/CategoryFilterChips';
 import BottomSlidePrompt from '@/components/BottomSlidePrompt';
+import NeighborhoodStoryTiles from '@/components/NeighborhoodStoryTiles';
+import UserTrail from '@/components/UserTrail';
+import MicroTrendPopups from '@/components/MicroTrendPopups';
+import SmartZoomController from '@/components/SmartZoomController';
+import PhotoMemoryLayer from '@/components/PhotoMemoryLayer';
 
 export default function MapScreen() {
   const router = useRouter();
   const { reports, loading, error, confirmReport, filterReportsByCategory } = useReports();
   const { location } = useLocation();
+  const { 
+    trailPoints, 
+    addViewPoint, 
+    addReportPoint, 
+    addConfirmPoint 
+  } = useUserTrail();
   
   const [selectedCategories, setSelectedCategories] = useState<ReportCategory[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>(reports);
@@ -38,8 +50,9 @@ export default function MapScreen() {
     if (location) {
       setCenter([location.coords.latitude, location.coords.longitude]);
       setZoom(15);
+      addViewPoint(location.coords.latitude, location.coords.longitude);
     }
-  }, [location]);
+  }, [location, addViewPoint]);
 
   // Filter reports when categories or reports change
   useEffect(() => {
@@ -87,6 +100,7 @@ export default function MapScreen() {
 
   const handleMarkerClick = (report: Report) => {
     setSelectedReport(report);
+    addViewPoint(report.location.latitude, report.location.longitude);
   };
 
   const handleClosePreview = () => {
@@ -101,6 +115,11 @@ export default function MapScreen() {
 
   const handleConfirmReport = async (reportId: string) => {
     await confirmReport(reportId);
+    const report = reports.find(r => r.id === reportId);
+    if (report) {
+      addConfirmPoint(report.location.latitude, report.location.longitude);
+    }
+    
     // Refresh selected report to show updated confirmations
     if (selectedReport && selectedReport.id === reportId) {
       const updatedReport = reports.find(r => r.id === reportId);
@@ -121,6 +140,9 @@ export default function MapScreen() {
   const handleAddReport = () => {
     setReportFormVisible(true);
     setSlidePromptVisible(false);
+    if (location) {
+      addReportPoint(location.coords.latitude, location.coords.longitude);
+    }
   };
 
   const handleCloseReportForm = () => {
@@ -133,6 +155,27 @@ export default function MapScreen() {
 
   const handleDismissSlidePrompt = () => {
     setSlidePromptVisible(false);
+  };
+
+  const handleZoomToLocation = (location: [number, number], zoomLevel: number) => {
+    setCenter(location);
+    setZoom(zoomLevel);
+    addViewPoint(location[0], location[1]);
+  };
+
+  const handleTrendTap = (trend: any) => {
+    // Filter to show only reports of this category
+    setSelectedCategories([trend.category]);
+    
+    // If trend has a specific location, zoom to it
+    if (trend.location) {
+      handleZoomToLocation(trend.location, 16);
+    }
+  };
+
+  const handlePhotoPress = (report: Report) => {
+    setSelectedReport(report);
+    addViewPoint(report.location.latitude, report.location.longitude);
   };
 
   // Calculate report counts by category
@@ -153,6 +196,14 @@ export default function MapScreen() {
     extrapolate: 'clamp',
   });
 
+  // Calculate map bounds for story tiles
+  const mapBounds = {
+    north: center[0] + 0.01,
+    south: center[0] - 0.01,
+    east: center[1] + 0.01,
+    west: center[1] - 0.01,
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -168,6 +219,28 @@ export default function MapScreen() {
           { useNativeDriver: false }
         )}
         filteredCategories={selectedCategories}
+      />
+      
+      {/* Immersive Features */}
+      <NeighborhoodStoryTiles
+        reports={reports}
+        mapBounds={mapBounds}
+        zoom={zoom}
+        visible={true}
+      />
+      
+      <UserTrail
+        trailPoints={trailPoints}
+        currentLocation={center}
+        zoom={zoom}
+        visible={true}
+      />
+      
+      <PhotoMemoryLayer
+        reports={reports}
+        zoom={zoom}
+        visible={true}
+        onPhotoPress={handlePhotoPress}
       />
       
       {/* Header */}
@@ -193,11 +266,28 @@ export default function MapScreen() {
         </SafeAreaView>
       </Animated.View>
       
+      {/* Smart Zoom Controller */}
+      <SmartZoomController
+        reports={reports}
+        currentLocation={center}
+        onZoomToLocation={handleZoomToLocation}
+        onZoomToActivity={() => {}}
+        visible={true}
+      />
+      
       {/* Floating Incident Summary */}
       <FloatingIncidentSummary
         reports={reports}
         visible={summaryVisible}
         onDismiss={handleDismissSummary}
+      />
+      
+      {/* Micro Trend Popups */}
+      <MicroTrendPopups
+        reports={reports}
+        currentLocation={center}
+        onTrendTap={handleTrendTap}
+        visible={true}
       />
       
       {/* Category Filter Chips */}
