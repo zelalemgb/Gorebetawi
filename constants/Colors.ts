@@ -19,11 +19,16 @@ export const Colors = {
   traffic: '#E53935', // Red
   infrastructure: '#795548', // Brown
   environment: '#43A047', // Green
+  safety: '#E53935', // Red
 
   // Status colors
   pending: '#FF9800', // Orange
   confirmed: '#3F51B5', // Indigo
   resolved: '#43A047', // Green
+
+  // UI colors
+  accent: '#3F51B5',
+  primary: '#3F51B5',
 };
 
 // Theme definitions
@@ -40,4 +45,5 @@ export const LightTheme = {
   border: Colors.lightGray,
   notification: Colors.red,
   shadow: 'rgba(0, 0, 0, 0.1)',
+  white: Colors.white,
 };

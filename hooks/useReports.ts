@@ -7,6 +7,139 @@ import {
   getBusinesses 
 } from '@/lib/supabase';
 
+// Sample data for demonstration
+const SAMPLE_REPORTS: Report[] = [
+  {
+    id: '1',
+    title: 'Street Light Out',
+    description: 'Main street light has been out for 3 days',
+    category: 'light',
+    status: 'pending',
+    location: { latitude: 8.9806, longitude: 38.7578 },
+    address: 'Bole Road, near Edna Mall',
+    timestamp: Date.now() - 86400000, // 1 day ago
+    userId: 'user1',
+    anonymous: false,
+    confirmations: 2,
+    metadata: { severity: 'moderate' }
+  },
+  {
+    id: '2',
+    title: 'Water Shortage',
+    description: 'No water supply since yesterday morning',
+    category: 'water',
+    status: 'confirmed',
+    location: { latitude: 8.9856, longitude: 38.7628 },
+    address: 'Bole Sub City, Kebele 03',
+    timestamp: Date.now() - 172800000, // 2 days ago
+    userId: 'user2',
+    anonymous: true,
+    confirmations: 5,
+    metadata: { duration: 'ongoing' }
+  },
+  {
+    id: '3',
+    title: 'Fuel Available',
+    description: 'Both gasoline and diesel available, short queue',
+    category: 'fuel',
+    status: 'confirmed',
+    location: { latitude: 8.9906, longitude: 38.7678 },
+    address: 'Total Station, Bole Road',
+    timestamp: Date.now() - 3600000, // 1 hour ago
+    userId: 'user3',
+    anonymous: false,
+    confirmations: 8,
+    metadata: { 
+      availability: true,
+      queueLength: 'short',
+      fuelStation: {
+        id: 'total-bole',
+        name: 'Total Bole',
+        address: 'Bole Road',
+        location: { latitude: 8.9906, longitude: 38.7678 }
+      }
+    }
+  },
+  {
+    id: '4',
+    title: 'Bread Price Increase',
+    description: 'Local bakery increased bread price to 45 birr',
+    category: 'price',
+    status: 'pending',
+    location: { latitude: 8.9756, longitude: 38.7528 },
+    address: 'Bole Medhanialem Area',
+    timestamp: Date.now() - 7200000, // 2 hours ago
+    userId: 'user4',
+    anonymous: false,
+    confirmations: 1,
+    metadata: {
+      priceDetails: {
+        itemName: 'Bread',
+        unitOfMeasure: 'loaf',
+        quantity: 1,
+        price: 45,
+        previousPrice: 40
+      }
+    }
+  },
+  {
+    id: '5',
+    title: 'Heavy Traffic',
+    description: 'Accident causing major delays on main road',
+    category: 'traffic',
+    status: 'confirmed',
+    location: { latitude: 9.0184, longitude: 38.7578 },
+    address: 'Stadium Area, near roundabout',
+    timestamp: Date.now() - 1800000, // 30 minutes ago
+    userId: 'user5',
+    anonymous: false,
+    confirmations: 12,
+    metadata: { severity: 'heavy' }
+  },
+  {
+    id: '6',
+    title: 'Large Pothole',
+    description: 'Dangerous pothole causing vehicle damage',
+    category: 'infrastructure',
+    status: 'pending',
+    location: { latitude: 9.0284, longitude: 38.7478 },
+    address: 'Kazanchis Road',
+    timestamp: Date.now() - 259200000, // 3 days ago
+    userId: 'user6',
+    anonymous: true,
+    confirmations: 7,
+    metadata: { subcategory: 'Pothole' }
+  },
+  {
+    id: '7',
+    title: 'Garbage Overflow',
+    description: 'Dumpster overflowing, creating health hazard',
+    category: 'environment',
+    status: 'confirmed',
+    location: { latitude: 9.0334, longitude: 38.7428 },
+    address: 'Piassa Market Area',
+    timestamp: Date.now() - 432000000, // 5 days ago
+    userId: 'user7',
+    anonymous: false,
+    confirmations: 4,
+    metadata: { subcategory: 'Garbage overflow' }
+  },
+  {
+    id: '8',
+    title: 'Road Construction',
+    description: 'Road blocked due to ongoing construction work',
+    category: 'infrastructure',
+    status: 'confirmed',
+    location: { latitude: 8.9956, longitude: 38.7728 },
+    address: 'Bole Atlas Road',
+    timestamp: Date.now() - 604800000, // 1 week ago
+    userId: 'user8',
+    anonymous: false,
+    confirmations: 15,
+    metadata: { subcategory: 'Road Block' }
+  }
+];
+
 export function useReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,40 +164,31 @@ export function useReports() {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await getReports({
-        category: filters?.category,
-        status: filters?.status,
-        limit: filters?.limit || 50,
-      });
-
-      if (fetchError) throw fetchError;
-
+      // For demo purposes, use sample data
+      // In production, this would fetch from Supabase
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      
       if (!mounted.current) return;
 
-      // Transform database format to app format
-      const transformedReports: Report[] = (data || []).map(dbReport => ({
-        id: dbReport.id,
-        title: dbReport.title,
-        description: dbReport.description || undefined,
-        category: dbReport.category as ReportCategory,
-        status: dbReport.status as Report['status'],
-        location: {
-          latitude: dbReport.location[0],
-          longitude: dbReport.location[1],
-        },
-        address: dbReport.address || undefined,
-        timestamp: new Date(dbReport.created_at).getTime(),
-        imageUrl: dbReport.image_url || undefined,
-        userId: dbReport.user_id || 'anonymous',
-        anonymous: dbReport.anonymous,
-        confirmations: dbReport.confirmations,
-        isSponsored: dbReport.is_sponsored,
-        sponsoredBy: dbReport.sponsored_by || undefined,
-        expiresAt: dbReport.expires_at ? new Date(dbReport.expires_at).getTime() : undefined,
-        metadata: dbReport.metadata || undefined,
-      }));
+      let filteredReports = [...SAMPLE_REPORTS];
 
-      setReports(transformedReports);
+      if (filters?.category && filters.category.length > 0) {
+        filteredReports = filteredReports.filter(report => 
+          filters.category!.includes(report.category)
+        );
+      }
+
+      if (filters?.status) {
+        filteredReports = filteredReports.filter(report => 
+          report.status === filters.status
+        );
+      }
+
+      if (filters?.limit) {
+        filteredReports = filteredReports.slice(0, filters.limit);
+      }
+
+      setReports(filteredReports);
     } catch (err: any) {
       if (mounted.current) {
         setError(err.message || 'Failed to fetch reports');
@@ -83,44 +207,16 @@ export function useReports() {
       setLoading(true);
       setError(null);
 
-      const { data, error: createError } = await createReport({
-        title: report.title,
-        description: report.description,
-        category: report.category,
-        location: [report.location.latitude, report.location.longitude],
-        address: report.address,
-        image_url: report.imageUrl,
-        user_id: report.userId === 'anonymous' ? null : report.userId,
-        anonymous: report.anonymous,
-        metadata: report.metadata,
-      });
-
-      if (createError) throw createError;
+      // For demo purposes, add to local state
+      // In production, this would create in Supabase
+      const newReport: Report = {
+        ...report,
+        id: `report_${Date.now()}`,
+        timestamp: Date.now(),
+        confirmations: 0,
+      };
 
       if (!mounted.current) return null;
-
-      // Transform and add to local state
-      const newReport: Report = {
-        id: data.id,
-        title: data.title,
-        description: data.description || undefined,
-        category: data.category as ReportCategory,
-        status: data.status as Report['status'],
-        location: {
-          latitude: data.location[0],
-          longitude: data.location[1],
-        },
-        address: data.address || undefined,
-        timestamp: new Date(data.created_at).getTime(),
-        imageUrl: data.image_url || undefined,
-        userId: data.user_id || 'anonymous',
-        anonymous: data.anonymous,
-        confirmations: data.confirmations,
-        isSponsored: data.is_sponsored,
-        sponsoredBy: data.sponsored_by || undefined,
-        expiresAt: data.expires_at ? new Date(data.expires_at).getTime() : undefined,
-        metadata: data.metadata || undefined,
-      };
 
       setReports(prev => [newReport, ...prev]);
       return newReport.id;
@@ -148,44 +244,15 @@ export function useReports() {
       setLoading(true);
       setError(null);
 
-      const { data, error: createError } = await createReport({
-        title: report.title,
-        description: report.description,
-        category: report.category,
-        location: [report.location.latitude, report.location.longitude],
-        address: report.address,
-        image_url: report.imageUrl,
-        user_id: report.userId === 'anonymous' ? null : report.userId,
-        anonymous: report.anonymous,
-        metadata: report.metadata,
-      });
-
-      if (createError) throw createError;
+      const newReport: Report = {
+        ...report,
+        id: `sponsored_${Date.now()}`,
+        timestamp: Date.now(),
+        confirmations: 0,
+        isSponsored: true,
+      };
 
       if (!mounted.current) return null;
-
-      // Transform and add to local state
-      const newReport: Report = {
-        id: data.id,
-        title: data.title,
-        description: data.description || undefined,
-        category: data.category as ReportCategory,
-        status: data.status as Report['status'],
-        location: {
-          latitude: data.location[0],
-          longitude: data.location[1],
-        },
-        address: data.address || undefined,
-        timestamp: new Date(data.created_at).getTime(),
-        imageUrl: data.image_url || undefined,
-        userId: data.user_id || 'anonymous',
-        anonymous: data.anonymous,
-        confirmations: data.confirmations,
-        isSponsored: true,
-        sponsoredBy: report.sponsoredBy,
-        expiresAt: report.expiresAt,
-        metadata: data.metadata || undefined,
-      };
 
       setReports(prev => [newReport, ...prev]);
       return newReport.id;
@@ -205,10 +272,6 @@ export function useReports() {
   // Confirm a report
   const confirmReport = useCallback(async (reportId: string) => {
     try {
-      const { error: updateError } = await updateReportConfirmations(reportId);
-
-      if (updateError) throw updateError;
-
       if (!mounted.current) return false;
 
       setReports(prev => 
@@ -242,36 +305,34 @@ export function useReports() {
   }, [reports]);
 
   // Get nearby fuel stations
-  const getNearbyFuelStations = useCallback(async (
+  const getNearbyFuelStations = useCallback((
     latitude: number, 
     longitude: number, 
     radius: number = 2
-  ): Promise<FuelStation[]> => {
-    try {
-      const { data, error } = await getBusinesses({
-        status: 'verified',
-        category: 'fuel',
-      });
+  ): FuelStation[] => {
+    // Sample fuel stations for demo
+    const fuelStations: FuelStation[] = [
+      {
+        id: 'total-bole',
+        name: 'Total Bole',
+        address: 'Bole Road, near Edna Mall',
+        location: { latitude: 8.9906, longitude: 38.7678 }
+      },
+      {
+        id: 'noc-kazanchis',
+        name: 'NOC Kazanchis',
+        address: 'Kazanchis Road',
+        location: { latitude: 9.0284, longitude: 38.7478 }
+      },
+      {
+        id: 'shell-stadium',
+        name: 'Shell Stadium',
+        address: 'Stadium Area',
+        location: { latitude: 9.0184, longitude: 38.7578 }
+      }
+    ];
 
-      if (error) throw error;
-
-      // Transform database format to app format
-      const fuelStations: FuelStation[] = (data || []).map(business => ({
-        id: business.id,
-        name: business.name,
-        address: business.address,
-        location: {
-          latitude: business.location[0],
-          longitude: business.location[1],
-        },
-      }));
-
-      // In a real app, you would filter by distance here
-      return fuelStations;
-    } catch (err) {
-      console.error('Error fetching fuel stations:', err);
-      return [];
-    }
+    return fuelStations;
   }, []);
 
   return {
