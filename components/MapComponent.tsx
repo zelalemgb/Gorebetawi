@@ -10,6 +10,7 @@ interface MapComponentProps {
   selectedReport: Report | null;
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
+  filteredCategories?: string[];
 }
 
 const WebMapComponent = React.lazy(() => import('./WebMapComponent'));

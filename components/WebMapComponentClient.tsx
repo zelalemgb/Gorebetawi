@@ -13,6 +13,7 @@ interface MapComponentProps {
   selectedReport: Report | null;
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
+  filteredCategories?: string[];
 }
 
 // Addis Ababa landmarks and services data
@@ -392,11 +393,41 @@ export default function WebMapComponentClient({
   reports,
   selectedReport,
   onMarkerClick,
-  onScroll
+  onScroll,
+  filteredCategories = []
 }: MapComponentProps) {
   const getCategoryColor = (category: string) => {
-    return Colors[category as keyof typeof Colors];
+    const categoryColors: Record<string, string> = {
+      light: '#FDD835',
+      water: '#2196F3',
+      fuel: '#43A047',
+      price: '#FF9800',
+      traffic: '#F44336',
+      infrastructure: '#9E9E9E',
+      environment: '#4CAF50',
+      safety: '#E53935'
+    };
+    return categoryColors[category] || Colors.accent;
   };
+
+  const getCategoryIcon = (category: string) => {
+    const icons: Record<string, string> = {
+      light: '💡',
+      water: '💧',
+      fuel: '⛽',
+      price: '🛒',
+      traffic: '🚦',
+      infrastructure: '🛠️',
+      environment: '🌿',
+      safety: '⚠️'
+    };
+    return icons[category] || '📍';
+  };
+
+  // Filter reports based on selected categories
+  const visibleReports = filteredCategories.length > 0 
+    ? reports.filter(report => filteredCategories.includes(report.category))
+    : reports;
 
   return (
     <View style={styles.container}>
@@ -470,10 +501,19 @@ export default function WebMapComponentClient({
           </Popup>
         </Marker>
         
-        {/* Report markers */}
-        {reports.map((report) => {
+        {/* Report markers with advanced animations */}
+        {visibleReports.map((report) => {
           const color = getCategoryColor(report.category);
+          const icon = getCategoryIcon(report.category);
           const isSelected = selectedReport?.id === report.id;
+          const isFresh = Date.now() - report.timestamp < 3600000; // < 1 hour
+          const isOngoing = report.metadata?.duration === 'ongoing';
+          const isExpired = report.expiresAt ? Date.now() > report.expiresAt : false;
+          const isSponsored = report.isSponsored;
+          
+          // Determine opacity for filtered reports
+          const isFiltered = filteredCategories.length > 0 && !filteredCategories.includes(report.category);
+          const opacity = isFiltered ? 0.4 : (isExpired ? 0.6 : 1);
           
           return (
             <Marker
@@ -483,44 +523,114 @@ export default function WebMapComponentClient({
                 click: () => onMarkerClick(report)
               }}
               icon={L.divIcon({
-                className: 'report-marker',
+                className: 'animated-report-marker',
                 html: `
                   <div style="
-                    width: 32px;
-                    height: 32px;
+                    width: 40px;
+                    height: 40px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    transform: scale(${isSelected ? 1.2 : 1});
+                    position: relative;
+                    transform: scale(${isSelected ? 1.3 : 1});
                     transition: transform 0.2s ease-in-out;
-                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+                    opacity: ${opacity};
                   ">
-                    <svg
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="${isSelected ? color : 'white'}"
-                      stroke="${color}"
-                      stroke-width="${isSelected ? 2.5 : 2}"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    ${isSelected ? `<div style="
-                      position: absolute;
-                      width: 8px;
-                      height: 8px;
+                    ${isSponsored ? `
+                      <div style="
+                        position: absolute;
+                        width: 48px;
+                        height: 48px;
+                        border: 2px dashed ${Colors.accent};
+                        border-radius: 50%;
+                        animation: rotate 4s linear infinite;
+                        opacity: 0.6;
+                      "></div>
+                    ` : ''}
+                    
+                    ${(isOngoing || isFresh) ? `
+                      <div style="
+                        position: absolute;
+                        width: 40px;
+                        height: 40px;
+                        background-color: ${color};
+                        border-radius: 50%;
+                        opacity: 0.3;
+                        animation: ${isOngoing ? 'pulse' : 'ping'} ${isOngoing ? '2s' : '1s'} infinite;
+                      "></div>
+                    ` : ''}
+                    
+                    <div style="
+                      width: 32px;
+                      height: 32px;
                       background-color: ${color};
+                      border: 3px solid white;
                       border-radius: 50%;
-                      top: 10px;
-                      border: 1px solid white;
-                    "></div>` : ''}
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 16px;
+                      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                      position: relative;
+                      z-index: 2;
+                    ">
+                      ${icon}
+                    </div>
+                    
+                    ${report.confirmations > 0 ? `
+                      <div style="
+                        position: absolute;
+                        top: -4px;
+                        right: -4px;
+                        background-color: ${Colors.accent};
+                        color: white;
+                        border-radius: 10px;
+                        min-width: 20px;
+                        height: 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: 2px solid white;
+                        z-index: 3;
+                      ">
+                        ${report.confirmations}
+                      </div>
+                    ` : ''}
+                    
+                    ${report.status === 'confirmed' ? `
+                      <div style="
+                        position: absolute;
+                        bottom: -2px;
+                        right: 2px;
+                        width: 12px;
+                        height: 12px;
+                        background-color: ${Colors.success};
+                        border: 2px solid white;
+                        border-radius: 50%;
+                        z-index: 3;
+                      "></div>
+                    ` : ''}
                   </div>
+                  
+                  <style>
+                    @keyframes pulse {
+                      0%, 100% { transform: scale(1); opacity: 0.3; }
+                      50% { transform: scale(1.2); opacity: 0.1; }
+                    }
+                    @keyframes ping {
+                      0% { transform: scale(1); opacity: 0.3; }
+                      100% { transform: scale(1.5); opacity: 0; }
+                    }
+                    @keyframes rotate {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+                  </style>
                 `,
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
               })}
             >
               <Popup>
@@ -535,12 +645,11 @@ export default function WebMapComponentClient({
                     marginBottom: '8px',
                   }}>
                     <div style={{
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: color,
+                      fontSize: '18px',
                       marginRight: '8px',
-                    }} />
+                    }}>
+                      {icon}
+                    </div>
                     <h3 style={{
                       margin: 0,
                       fontSize: '16px',
@@ -549,10 +658,23 @@ export default function WebMapComponentClient({
                     }}>
                       {report.title}
                     </h3>
+                    {isSponsored && (
+                      <div style={{
+                        marginLeft: '8px',
+                        padding: '2px 6px',
+                        backgroundColor: Colors.accent,
+                        color: 'white',
+                        fontSize: '10px',
+                        borderRadius: '8px',
+                        fontWeight: 'bold',
+                      }}>
+                        SPONSORED
+                      </div>
+                    )}
                   </div>
                   {report.description && (
                     <p style={{
-                      margin: '0',
+                      margin: '0 0 8px 0',
                       fontSize: '14px',
                       color: '#666666',
                       lineHeight: '1.4',
@@ -561,11 +683,23 @@ export default function WebMapComponentClient({
                     </p>
                   )}
                   <div style={{
-                    marginTop: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                     fontSize: '12px',
                     color: '#888',
                   }}>
-                    {report.confirmations} confirmations
+                    <span>{report.confirmations} confirmations</span>
+                    <span style={{
+                      padding: '2px 6px',
+                      backgroundColor: color,
+                      color: 'white',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                    }}>
+                      {report.status.toUpperCase()}
+                    </span>
                   </div>
                 </div>
               </Popup>
