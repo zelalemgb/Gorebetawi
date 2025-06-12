@@ -7,8 +7,9 @@ import {
   getBusinesses 
 } from '@/lib/supabase';
 
-// Sample data for demonstration
+// Enhanced sample data for demonstration with more diverse locations and scenarios
 const SAMPLE_REPORTS: Report[] = [
+  // Fresh reports (< 1 hour)
   {
     id: '1',
     title: 'Street Light Out',
@@ -17,11 +18,11 @@ const SAMPLE_REPORTS: Report[] = [
     status: 'pending',
     location: { latitude: 8.9806, longitude: 38.7578 },
     address: 'Bole Road, near Edna Mall',
-    timestamp: Date.now() - 86400000, // 1 day ago
+    timestamp: Date.now() - 1800000, // 30 minutes ago (fresh)
     userId: 'user1',
     anonymous: false,
     confirmations: 2,
-    metadata: { severity: 'moderate' }
+    metadata: { severity: 'moderate', duration: 'ongoing' }
   },
   {
     id: '2',
@@ -45,7 +46,7 @@ const SAMPLE_REPORTS: Report[] = [
     status: 'confirmed',
     location: { latitude: 8.9906, longitude: 38.7678 },
     address: 'Total Station, Bole Road',
-    timestamp: Date.now() - 3600000, // 1 hour ago
+    timestamp: Date.now() - 2700000, // 45 minutes ago (fresh)
     userId: 'user3',
     anonymous: false,
     confirmations: 8,
@@ -137,6 +138,121 @@ const SAMPLE_REPORTS: Report[] = [
     anonymous: false,
     confirmations: 15,
     metadata: { subcategory: 'Road Block' }
+  },
+  // Additional fresh reports for better visualization
+  {
+    id: '9',
+    title: 'Power Outage',
+    description: 'Entire neighborhood without electricity',
+    category: 'light',
+    status: 'pending',
+    location: { latitude: 8.9706, longitude: 38.7478 },
+    address: 'Bole Michael Area',
+    timestamp: Date.now() - 900000, // 15 minutes ago (very fresh)
+    userId: 'user9',
+    anonymous: false,
+    confirmations: 0,
+    metadata: { severity: 'heavy', duration: 'ongoing' }
+  },
+  {
+    id: '10',
+    title: 'Safety Concern',
+    description: 'Broken street barrier creating hazard',
+    category: 'safety',
+    status: 'pending',
+    location: { latitude: 8.9856, longitude: 38.7478 },
+    address: 'Bole Brass Junction',
+    timestamp: Date.now() - 3600000, // 1 hour ago
+    userId: 'user10',
+    anonymous: true,
+    confirmations: 3,
+    metadata: { severity: 'moderate' }
+  },
+  // Sponsored report
+  {
+    id: '11',
+    title: 'Quality Fuel Available',
+    description: 'Premium gasoline and diesel now available with no waiting time',
+    category: 'fuel',
+    status: 'confirmed',
+    location: { latitude: 9.0084, longitude: 38.7648 },
+    address: 'Shell Station, Meskel Square',
+    timestamp: Date.now() - 1800000, // 30 minutes ago
+    userId: 'shell_station',
+    anonymous: false,
+    confirmations: 15,
+    isSponsored: true,
+    sponsoredBy: 'shell_station',
+    expiresAt: Date.now() + 86400000, // Expires in 24 hours
+    metadata: { 
+      availability: true,
+      queueLength: 'none',
+      fuelStation: {
+        id: 'shell-meskel',
+        name: 'Shell Meskel Square',
+        address: 'Meskel Square',
+        location: { latitude: 9.0084, longitude: 38.7648 }
+      }
+    }
+  },
+  // More infrastructure issues for clustering demo
+  {
+    id: '12',
+    title: 'Road Damage',
+    description: 'Multiple potholes on main road',
+    category: 'infrastructure',
+    status: 'pending',
+    location: { latitude: 9.0294, longitude: 38.7488 },
+    address: 'Kazanchis Main Road',
+    timestamp: Date.now() - 86400000, // 1 day ago
+    userId: 'user12',
+    anonymous: false,
+    confirmations: 2,
+    metadata: { subcategory: 'Pothole' }
+  },
+  {
+    id: '13',
+    title: 'Manhole Cover Missing',
+    description: 'Open manhole creating danger for vehicles',
+    category: 'infrastructure',
+    status: 'confirmed',
+    location: { latitude: 9.0274, longitude: 38.7468 },
+    address: 'Kazanchis Side Street',
+    timestamp: Date.now() - 172800000, // 2 days ago
+    userId: 'user13',
+    anonymous: true,
+    confirmations: 8,
+    metadata: { subcategory: 'Open Manhole' }
+  },
+  // More traffic reports
+  {
+    id: '14',
+    title: 'Moderate Traffic',
+    description: 'Slow moving traffic due to construction',
+    category: 'traffic',
+    status: 'pending',
+    location: { latitude: 8.9906, longitude: 38.7578 },
+    address: 'Bole Road Junction',
+    timestamp: Date.now() - 2700000, // 45 minutes ago
+    userId: 'user14',
+    anonymous: false,
+    confirmations: 5,
+    metadata: { severity: 'moderate' }
+  },
+  // Environmental issues
+  {
+    id: '15',
+    title: 'Stagnant Water',
+    description: 'Standing water creating mosquito breeding ground',
+    category: 'environment',
+    status: 'pending',
+    location: { latitude: 9.0384, longitude: 38.7378 },
+    address: 'Piassa Back Street',
+    timestamp: Date.now() - 259200000, // 3 days ago
+    userId: 'user15',
+    anonymous: false,
+    confirmations: 1,
+    metadata: { subcategory: 'Stagnant water' }
   }
 ];
 
@@ -166,7 +282,7 @@ export function useReports() {
 
       // For demo purposes, use sample data
       // In production, this would fetch from Supabase
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
       
       if (!mounted.current) return;
 
@@ -329,6 +445,12 @@ export function useReports() {
         name: 'Shell Stadium',
         address: 'Stadium Area',
         location: { latitude: 9.0184, longitude: 38.7578 }
+      },
+      {
+        id: 'shell-meskel',
+        name: 'Shell Meskel Square',
+        address: 'Meskel Square',
+        location: { latitude: 9.0084, longitude: 38.7648 }
       }
     ];
 

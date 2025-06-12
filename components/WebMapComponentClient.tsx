@@ -701,6 +701,20 @@ export default function WebMapComponentClient({
                       {report.status.toUpperCase()}
                     </span>
                   </div>
+                  {isFresh && (
+                    <div style={{
+                      marginTop: '8px',
+                      padding: '4px 8px',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      borderRadius: '12px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                    }}>
+                      🔥 FRESH REPORT
+                    </div>
+                  )}
                 </div>
               </Popup>
             </Marker>
