@@ -612,6 +612,20 @@ export default function WebMapComponentClient({
                         z-index: 3;
                       "></div>
                     ` : ''}
+                    
+                    ${report.status === 'resolved' ? `
+                      <div style="
+                        position: absolute;
+                        bottom: -2px;
+                        right: 2px;
+                        width: 12px;
+                        height: 12px;
+                        background-color: #4CAF50;
+                        border: 2px solid white;
+                        border-radius: 50%;
+                        z-index: 3;
+                      "></div>
+                    ` : ''}
                   </div>
                   
                   <style>
@@ -682,6 +696,19 @@ export default function WebMapComponentClient({
                       {report.description}
                     </p>
                   )}
+                  {report.imageUrl && (
+                    <img 
+                      src={report.imageUrl} 
+                      alt="Report" 
+                      style={{
+                        width: '100%',
+                        height: '120px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        marginBottom: '8px'
+                      }}
+                    />
+                  )}
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -713,6 +740,17 @@ export default function WebMapComponentClient({
                       textAlign: 'center',
                     }}>
                       🔥 FRESH REPORT
+                    </div>
+                  )}
+                  {report.metadata?.priceDetails && (
+                    <div style={{
+                      marginTop: '8px',
+                      padding: '6px 8px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}>
+                      <strong>{report.metadata.priceDetails.itemName}:</strong> {report.metadata.priceDetails.price} birr/{report.metadata.priceDetails.unitOfMeasure}
                     </div>
                   )}
                 </div>
