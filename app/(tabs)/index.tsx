@@ -11,14 +11,7 @@ import ReportPreview from '@/components/ReportPreview';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import ReportFormModal from '@/components/ReportFormModal';
 import MapComponent from '@/components/MapComponent';
-import FloatingIncidentSummary from '@/components/FloatingIncidentSummary';
 import CategoryFilterChips from '@/components/CategoryFilterChips';
-import BottomSlidePrompt from '@/components/BottomSlidePrompt';
-import NeighborhoodStoryTiles from '@/components/NeighborhoodStoryTiles';
-import UserTrail from '@/components/UserTrail';
-import MicroTrendPopups from '@/components/MicroTrendPopups';
-import SmartZoomController from '@/components/SmartZoomController';
-import PhotoMemoryLayer from '@/components/PhotoMemoryLayer';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -35,9 +28,6 @@ export default function MapScreen() {
   const [filteredReports, setFilteredReports] = useState<Report[]>(reports);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reportFormVisible, setReportFormVisible] = useState(false);
-  const [summaryVisible, setSummaryVisible] = useState(false);
-  const [slidePromptVisible, setSlidePromptVisible] = useState(false);
-  const [slidePromptMessage, setSlidePromptMessage] = useState('');
   
   const headerAnimation = useRef(new Animated.Value(0)).current;
   
@@ -62,41 +52,6 @@ export default function MapScreen() {
         : reports
     );
   }, [selectedCategories, reports, filterReportsByCategory]);
-
-  // Show summary on app load
-  useEffect(() => {
-    if (reports.length > 0 && !summaryVisible) {
-      const timer = setTimeout(() => {
-        setSummaryVisible(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [reports.length]);
-
-  // Check for congested zones and show slide prompt
-  useEffect(() => {
-    if (zoom >= 15 && reports.length > 0) {
-      const trafficReports = reports.filter(r => 
-        r.category === 'traffic' && 
-        r.metadata?.severity === 'heavy' &&
-        Date.now() - r.timestamp < 3600000 // Within last hour
-      );
-      
-      const infrastructureIssues = reports.filter(r => 
-        r.category === 'infrastructure' &&
-        Math.abs(r.location.latitude - center[0]) < 0.01 &&
-        Math.abs(r.location.longitude - center[1]) < 0.01
-      );
-      
-      if (trafficReports.length > 0) {
-        setSlidePromptMessage('🚦 Heavy congestion here. Want to report current status?');
-        setSlidePromptVisible(true);
-      } else if (infrastructureIssues.length >= 2) {
-        setSlidePromptMessage('🚧 Multiple road issues reported. See something new?');
-        setSlidePromptVisible(true);
-      }
-    }
-  }, [zoom, center, reports]);
 
   const handleMarkerClick = (report: Report) => {
     setSelectedReport(report);
@@ -139,7 +94,6 @@ export default function MapScreen() {
 
   const handleAddReport = () => {
     setReportFormVisible(true);
-    setSlidePromptVisible(false);
     if (location) {
       addReportPoint(location.coords.latitude, location.coords.longitude);
     }
@@ -147,35 +101,6 @@ export default function MapScreen() {
 
   const handleCloseReportForm = () => {
     setReportFormVisible(false);
-  };
-
-  const handleDismissSummary = () => {
-    setSummaryVisible(false);
-  };
-
-  const handleDismissSlidePrompt = () => {
-    setSlidePromptVisible(false);
-  };
-
-  const handleZoomToLocation = (location: [number, number], zoomLevel: number) => {
-    setCenter(location);
-    setZoom(zoomLevel);
-    addViewPoint(location[0], location[1]);
-  };
-
-  const handleTrendTap = (trend: any) => {
-    // Filter to show only reports of this category
-    setSelectedCategories([trend.category]);
-    
-    // If trend has a specific location, zoom to it
-    if (trend.location) {
-      handleZoomToLocation(trend.location, 16);
-    }
-  };
-
-  const handlePhotoPress = (report: Report) => {
-    setSelectedReport(report);
-    addViewPoint(report.location.latitude, report.location.longitude);
   };
 
   // Calculate report counts by category
@@ -196,14 +121,6 @@ export default function MapScreen() {
     extrapolate: 'clamp',
   });
 
-  // Calculate map bounds for story tiles
-  const mapBounds = {
-    north: center[0] + 0.01,
-    south: center[0] - 0.01,
-    east: center[1] + 0.01,
-    west: center[1] - 0.01,
-  };
-
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -221,29 +138,7 @@ export default function MapScreen() {
         filteredCategories={selectedCategories}
       />
       
-      {/* Immersive Features */}
-      <NeighborhoodStoryTiles
-        reports={reports}
-        mapBounds={mapBounds}
-        zoom={zoom}
-        visible={true}
-      />
-      
-      <UserTrail
-        trailPoints={trailPoints}
-        currentLocation={center}
-        zoom={zoom}
-        visible={true}
-      />
-      
-      <PhotoMemoryLayer
-        reports={reports}
-        zoom={zoom}
-        visible={true}
-        onPhotoPress={handlePhotoPress}
-      />
-      
-      {/* Header */}
+      {/* Clean Header */}
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <Animated.View 
           style={[
@@ -266,44 +161,14 @@ export default function MapScreen() {
         </SafeAreaView>
       </Animated.View>
       
-      {/* Smart Zoom Controller */}
-      <SmartZoomController
-        reports={reports}
-        currentLocation={center}
-        onZoomToLocation={handleZoomToLocation}
-        onZoomToActivity={() => {}}
-        visible={true}
-      />
-      
-      {/* Floating Incident Summary */}
-      <FloatingIncidentSummary
-        reports={reports}
-        visible={summaryVisible}
-        onDismiss={handleDismissSummary}
-      />
-      
-      {/* Micro Trend Popups */}
-      <MicroTrendPopups
-        reports={reports}
-        currentLocation={center}
-        onTrendTap={handleTrendTap}
-        visible={true}
-      />
-      
-      {/* Category Filter Chips */}
-      <CategoryFilterChips
-        selectedCategories={selectedCategories}
-        onToggleCategory={handleToggleCategory}
-        reportCounts={reportCounts}
-      />
-      
-      {/* Bottom Slide Prompt */}
-      <BottomSlidePrompt
-        visible={slidePromptVisible}
-        message={slidePromptMessage}
-        onCreateReport={handleAddReport}
-        onDismiss={handleDismissSlidePrompt}
-      />
+      {/* Category Filter Chips - Only show when needed */}
+      {selectedCategories.length > 0 && (
+        <CategoryFilterChips
+          selectedCategories={selectedCategories}
+          onToggleCategory={handleToggleCategory}
+          reportCounts={reportCounts}
+        />
+      )}
       
       {/* Report Preview */}
       {selectedReport && (
@@ -413,7 +278,7 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     position: 'absolute',
-    bottom: 180,
+    bottom: 100,
     left: 0,
     right: 0,
     alignItems: 'center',
