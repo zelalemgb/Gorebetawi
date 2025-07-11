@@ -74,8 +74,6 @@ export function useAuth() {
     try {
       const { data: { user: authUser }, error: authError } = await getCurrentUser();
       
-      if (authError) throw authError;
-      
       if (authUser) {
         // Get user profile from database
         const { data: profile, error: profileError } = await getUserProfile(authUser.id);
@@ -88,7 +86,13 @@ export function useAuth() {
             role: profile.role as User['role'],
             preferences: profile.preferences,
           });
+        } else if (profileError) {
+          console.error('Error fetching user profile:', profileError);
+          setError('Failed to load user profile');
         }
+      } else {
+        // No user logged in - this is a normal state, not an error
+        setUser(null);
       }
     } catch (err) {
       console.error('Error checking auth state:', err);
