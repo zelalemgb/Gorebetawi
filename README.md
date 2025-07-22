@@ -23,6 +23,8 @@ it so the new variables are loaded.
 
 These environment variables are required when starting the Expo development server or building the app. Variables prefixed with `EXPO_PUBLIC_` are automatically exposed to the client by Expo.
 
+If you see an error like `Missing Supabase environment variables`, double-check that the `.env` file exists, contains your Supabase credentials and that you've restarted the development server.
+
 3. Start the development server:
 
 ```bash
