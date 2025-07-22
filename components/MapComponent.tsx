@@ -14,6 +14,7 @@ interface MapComponentProps {
 }
 
 const WebMapComponent = React.lazy(() => import('./WebMapComponent'));
+import MobileMapComponent from './MobileMapComponent';
 
 export default function MapComponent(props: MapComponentProps) {
   if (Platform.OS === 'web') {
@@ -29,11 +30,7 @@ export default function MapComponent(props: MapComponentProps) {
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <Text>Map is only available on web platform</Text>
-    </View>
-  );
+  return <MobileMapComponent {...props} />;
 }
 
 const styles = StyleSheet.create({
