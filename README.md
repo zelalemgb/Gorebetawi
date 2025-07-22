@@ -17,6 +17,10 @@ EXPO_PUBLIC_SUPABASE_URL=https://mjohmhcctepekglsbmuf.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qb2htaGNjdGVwZWtnbHNibXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzY3MzQsImV4cCI6MjA2NDUxMjczNH0.mR4lTASrj_1jMxr8Fa6XHlkQNzANQvMqtNN9YW1G0A4
 ```
 
+Make sure to save the file **before** starting the development server. If you
+edit or create `.env` while the server is running, stop the server and restart
+it so the new variables are loaded.
+
 These environment variables are required when starting the Expo development server or building the app. Variables prefixed with `EXPO_PUBLIC_` are automatically exposed to the client by Expo.
 
 3. Start the development server:
