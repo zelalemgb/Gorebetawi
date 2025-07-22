@@ -3,10 +3,13 @@ import { Database } from '@/types/supabase';
 import 'react-native-url-polyfill/auto';
 
 // Initialize the Supabase client
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    'Supabase credentials are missing. Copy `.env.example` to `.env`, add your credentials and restart the development server.'
+  );
   throw new Error('Missing Supabase environment variables');
 }
 
