@@ -25,4 +25,7 @@ These environment variables are required when starting the Expo development serv
 npm run dev
 ```
 
-If the environment variables are missing, the app will throw an error during startup.
+If these environment variables are not defined when the app starts, it will
+automatically fall back to demo credentials so you can still run the project
+locally. Defining them in a `.env` file is recommended if you want to connect to
+your own Supabase project.

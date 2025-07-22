@@ -2,12 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 import 'react-native-url-polyfill/auto';
 
-// Initialize the Supabase client
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+// Initialize the Supabase client. If the environment variables are not
+// defined, fall back to the demo Supabase project so the app still runs.
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL ||
+  'https://mjohmhcctepekglsbmuf.supabase.co';
+const supabaseAnonKey =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qb2htaGNjdGVwZWtnbHNibXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzY3MzQsImV4cCI6MjA2NDUxMjczNH0.mR4lTASrj_1jMxr8Fa6XHlkQNzANQvMqtNN9YW1G0A4';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+  // Warn during development so developers know env vars are missing.
+  console.warn('Supabase env vars not found; using demo credentials.');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
