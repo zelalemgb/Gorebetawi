@@ -29,8 +29,14 @@ export default function MapComponent(props: MapComponentProps) {
     );
   }
 
-  const MobileMapComponent = require('./MobileMapComponent').default;
-  return <MobileMapComponent {...props} />;
+  // Only require MobileMapComponent on native platforms
+  if (Platform.OS !== 'web') {
+    const MobileMapComponent = require('./MobileMapComponent').default;
+    return <MobileMapComponent {...props} />;
+  }
+
+  // Fallback (should not reach here)
+  return null;
 }
 
 const styles = StyleSheet.create({
