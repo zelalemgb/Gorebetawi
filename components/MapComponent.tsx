@@ -14,6 +14,7 @@ interface MapComponentProps {
 }
 
 const WebMapComponent = React.lazy(() => import('./WebMapComponent'));
+const MobileMapComponent = React.lazy(() => import('./MobileMapComponent'));
 
 export default function MapComponent(props: MapComponentProps) {
   if (Platform.OS === 'web') {
@@ -29,14 +30,17 @@ export default function MapComponent(props: MapComponentProps) {
     );
   }
 
-  // Only require MobileMapComponent on native platforms
-  if (Platform.OS !== 'web') {
-    const MobileMapComponent = require('./MobileMapComponent').default;
-    return <MobileMapComponent {...props} />;
-  }
-
-  // Fallback (should not reach here)
-  return null;
+  // Use lazy loading for native platforms as well
+  return (
+    <Suspense fallback={
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Loading map...</Text>
+      </View>
+    }>
+      <MobileMapComponent {...props} />
+    </Suspense>
+  );
 }
 
 const styles = StyleSheet.create({
