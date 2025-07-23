@@ -41,9 +41,6 @@ export default function MapComponent(props: MapComponentProps) {
       <MobileMapComponent {...props} />
     </Suspense>
   );
-      <MobileMapComponent {...props} />
-    </Suspense>
-  );
 }
 
 const styles = StyleSheet.create({
@@ -55,5 +52,5 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: Colors.primary,
-  }
+  },
 });
