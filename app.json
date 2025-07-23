@@ -19,14 +19,6 @@
     "plugins": ["expo-router", "expo-font", "expo-web-browser"],
     "experiments": {
       "typedRoutes": true
-    },
-    "unstable_settings": {
-      "web": {
-        "bundler": "metro",
-        "unstable_moduleLoadingConfig": {
-          "excludeFromParent": ["react-native-maps"]
-        }
-      }
     }
   }
 }
