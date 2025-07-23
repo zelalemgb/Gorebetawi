@@ -41,6 +41,9 @@ export default function MapComponent(props: MapComponentProps) {
       <MobileMapComponent {...props} />
     </Suspense>
   );
+      <MobileMapComponent {...props} />
+    </Suspense>
+  );
 }
 
 const styles = StyleSheet.create({
