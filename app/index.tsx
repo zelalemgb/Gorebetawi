@@ -5,3 +5,4 @@ import { useAuth } from '@/hooks/useAuth';
 import { LightTheme } from '@/constants/Colors';
 
 export default function Index() {
+}
