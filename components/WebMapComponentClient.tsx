@@ -268,10 +268,13 @@ export default function WebMapComponentClient({
             <Marker
               key={report.id}
               position={[report.location.latitude, report.location.longitude]}
+             eventHandlers={{
+               click: () => onMarkerClick(report)
+             }}
               icon={L.divIcon({
                 className: `clean-report-marker marker-${report.id}`,
                 html: `
-                  <div onclick="window.handleMarkerClick && window.handleMarkerClick('${report.id}')" style="
+                  <div style="
                     width: 36px;
                     height: 36px;
                     display: flex;
