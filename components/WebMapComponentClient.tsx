@@ -467,6 +467,14 @@ export default function WebMapComponentClient({
                 click: () => onMarkerClick(report)
               }}
             >
+              <Popup>
+                <div style={{ maxWidth: '200px' }}>
+                  <strong>{report.title}</strong>
+                  {report.description && (
+                    <p style={{ margin: '4px 0' }}>{report.description}</p>
+                  )}
+                </div>
+              </Popup>
             </Marker>
           );
         })}

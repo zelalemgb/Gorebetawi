@@ -1,6 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { Marker } from 'react-native-maps';
+import { StyleSheet, View, Text } from 'react-native';
+import { Marker, Callout } from 'react-native-maps';
 import { Report, ReportCategory } from '@/types';
 import AnimatedReportPin from './AnimatedReportPin';
 
@@ -11,11 +11,11 @@ interface ReportMarkerProps {
   highlighted?: boolean;
 }
 
-export default function ReportMarker({ 
-  report, 
-  onPress, 
-  selected = false, 
-  highlighted = false 
+export default function ReportMarker({
+  report,
+  onPress,
+  selected = false,
+  highlighted = false
 }: ReportMarkerProps) {
   return (
     <Marker
@@ -24,16 +24,38 @@ export default function ReportMarker({
         longitude: report.location.longitude,
       }}
       tracksViewChanges={false}
+      onPress={() => onPress(report)}
     >
-      <TouchableOpacity onPress={() => onPress(report)} activeOpacity={0.8}>
-        <AnimatedReportPin
-          report={report}
-          isSelected={selected}
-          isHighlighted={highlighted}
-        />
-      </TouchableOpacity>
+      <AnimatedReportPin
+        report={report}
+        isSelected={selected}
+        isHighlighted={highlighted}
+      />
+      <Callout tooltip>
+        <View style={styles.calloutContainer}>
+          <Text style={styles.calloutTitle}>{report.title}</Text>
+          {report.description ? (
+            <Text style={styles.calloutSubtitle} numberOfLines={2}>
+              {report.description}
+            </Text>
+          ) : null}
+        </View>
+      </Callout>
     </Marker>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  calloutContainer: {
+    padding: 8,
+    maxWidth: 200,
+  },
+  calloutTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  calloutSubtitle: {
+    fontSize: 12,
+  },
+});
