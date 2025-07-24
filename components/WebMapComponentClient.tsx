@@ -467,10 +467,18 @@ export default function WebMapComponentClient({
                 iconAnchor: [18, 18],
               })}
               eventHandlers={{
-                click: () => onMarkerClick(report)
+                click: () => onMarkerClick(report),
+                mouseover: (e) => {
+                  const marker = e.target;
+                  marker.openPopup();
+                },
+                mouseout: (e) => {
+                  const marker = e.target;
+                  marker.closePopup();
+                }
               }}
             >
-              <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
+              <Popup closeButton={false} autoClose={false} closeOnClick={false}>
                 <div style={{ 
                   maxWidth: '250px',
                   padding: '12px 16px',
@@ -555,7 +563,7 @@ export default function WebMapComponentClient({
                     )}
                   </div>
                 </div>
-              </Tooltip>
+              </Popup>
             </Marker>
           );
         })}
