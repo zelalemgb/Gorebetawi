@@ -449,41 +449,17 @@ export default function WebMapComponentClient({
                 iconSize: [36, 36],
                 iconAnchor: [18, 18],
               })}
+              eventHandlers={{
+                click: () => onMarkerClick(report)
+              }}
             >
             </Marker>
           );
         })}
       </MapContainer>
-      
-      {/* Global click handler setup */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.handleMarkerClick = function(reportId) {
-              const report = ${JSON.stringify(reports)}.find(r => r.id === reportId);
-              if (report && window.onMarkerClickCallback) {
-                window.onMarkerClickCallback(report);
-              }
-            };
-          `
-        }}
-      />
     </View>
   );
 }
-
-// Set up the callback when component mounts
-useEffect(() => {
-  if (typeof window !== 'undefined') {
-    (window as any).onMarkerClickCallback = onMarkerClick;
-  }
-  
-  return () => {
-    if (typeof window !== 'undefined') {
-      (window as any).onMarkerClickCallback = null;
-    }
-  };
-}, [onMarkerClick]);
 
 const styles = StyleSheet.create({
   container: {
