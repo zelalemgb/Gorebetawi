@@ -13,6 +13,7 @@ import ReportFormModal from '@/components/ReportFormModal';
 import MapComponent from '@/components/MapComponent';
 import CategoryFilterChips from '@/components/CategoryFilterChips';
 import FloatingSummaryBubble from '@/components/FloatingSummaryBubble';
+import CategoryIconToolbar from '@/components/CategoryIconToolbar';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -198,13 +199,15 @@ export default function MapScreen() {
       )}
       
       {/* Category Filter Chips - Only show when needed */}
-      {selectedCategories.length > 0 && (
-        <CategoryFilterChips
-          selectedCategories={selectedCategories}
-          onToggleCategory={handleToggleCategory}
-          reportCounts={reportCounts}
-        />
-      )}
+      <CategoryIconToolbar
+        reports={reports}
+        selectedCategories={selectedCategories}
+        onToggleCategory={handleToggleCategory}
+        userLocation={location ? {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        } : null}
+      />
       
       {/* Floating Summary Bubble */}
       <FloatingSummaryBubble
