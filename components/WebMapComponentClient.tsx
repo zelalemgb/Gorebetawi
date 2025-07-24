@@ -450,122 +450,6 @@ export default function WebMapComponentClient({
                 iconAnchor: [18, 18],
               })}
             >
-              <Popup>
-                <div style={{
-                  padding: '12px 16px',
-                  minWidth: '200px',
-                  maxWidth: '250px',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '8px',
-                  }}>
-                    <div style={{
-                      fontSize: '15px',
-                      marginRight: '8px',
-                    }}>
-                      {icon}
-                    </div>
-                    <h3 style={{
-                      margin: 0,
-                      fontSize: '15px',
-                      fontWeight: '600',
-                      color: '#2d3748',
-                      letterSpacing: '0.2px',
-                    }}>
-                      {report.title}
-                    </h3>
-                    {isSponsored && (
-                      <div style={{
-                        marginLeft: '8px',
-                        padding: '2px 6px',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        fontSize: '9px',
-                        borderRadius: '8px',
-                        fontWeight: '600',
-                        letterSpacing: '0.5px',
-                      }}>
-                        SPONSORED
-                      </div>
-                    )}
-                  </div>
-                  {report.description && (
-                    <p style={{
-                      margin: '0 0 8px 0',
-                      fontSize: '13px',
-                      color: '#4a5568',
-                      lineHeight: '1.4',
-                    }}>
-                      {report.description}
-                    </p>
-                  )}
-                  {report.imageUrl && (
-                    <img 
-                      src={report.imageUrl} 
-                      alt="Report" 
-                      style={{
-                        width: '100%',
-                        height: '90px',
-                        objectFit: 'cover',
-                        borderRadius: '8px',
-                        marginBottom: '8px'
-                      }}
-                    />
-                  )}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: '11px',
-                    color: '#718096',
-                    fontWeight: '500',
-                  }}>
-                    <span>{report.confirmations} confirmations</span>
-                    <span style={{
-                      padding: '2px 6px',
-                      backgroundColor: color,
-                      color: 'white',
-                      borderRadius: '4px',
-                      fontSize: '9px',
-                      fontWeight: '600',
-                      letterSpacing: '0.3px',
-                    }}>
-                      {report.status.toUpperCase()}
-                    </span>
-                  </div>
-                  {isFresh && (
-                    <div style={{
-                      marginTop: '8px',
-                      padding: '4px 8px',
-                      background: 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)',
-                      color: 'white',
-                      borderRadius: '12px',
-                      fontSize: '10px',
-                      fontWeight: '600',
-                      textAlign: 'center',
-                      letterSpacing: '0.3px',
-                    }}>
-                      🔥 FRESH REPORT
-                    </div>
-                  )}
-                  {report.metadata?.priceDetails && (
-                    <div style={{
-                      marginTop: '8px',
-                      padding: '6px 8px',
-                      backgroundColor: '#f7fafc',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      border: '1px solid #e2e8f0',
-                    }}>
-                      <strong style={{ color: '#2d3748' }}>{report.metadata.priceDetails.itemName}:</strong> 
-                      <span style={{ color: '#4a5568' }}> {report.metadata.priceDetails.price} birr/{report.metadata.priceDetails.unitOfMeasure}</span>
-                    </div>
-                  )}
-                </div>
-              </Popup>
             </Marker>
           );
         })}
@@ -589,14 +473,14 @@ export default function WebMapComponentClient({
 }
 
 // Set up the callback when component mounts
-React.useEffect(() => {
+useEffect(() => {
   if (typeof window !== 'undefined') {
-    window.onMarkerClickCallback = onMarkerClick;
+    (window as any).onMarkerClickCallback = onMarkerClick;
   }
   
   return () => {
     if (typeof window !== 'undefined') {
-      window.onMarkerClickCallback = null;
+      (window as any).onMarkerClickCallback = null;
     }
   };
 }, [onMarkerClick]);
