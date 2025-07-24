@@ -10,7 +10,6 @@ interface MapComponentProps {
   zoom: number;
   reports: Report[];
   selectedReport: Report | null;
-  highlightedReports?: Report[];
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
   filteredCategories?: string[];
@@ -28,7 +27,6 @@ export default function MobileMapComponent({
   zoom,
   reports,
   selectedReport,
-  highlightedReports = [],
   onMarkerClick,
   onScroll,
   filteredCategories = [],
@@ -106,7 +104,6 @@ export default function MobileMapComponent({
           report={report}
           onPress={onMarkerClick}
           selected={selectedReport?.id === report.id}
-          highlighted={highlightedReports.some(hr => hr.id === report.id)}
         />
       ))}
     </MapView>
