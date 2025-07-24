@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Tooltip } from 'react-leaflet';
 import { Report } from '@/types';
 import { Colors } from '@/constants/Colors';
 import L from 'leaflet';
@@ -470,14 +470,92 @@ export default function WebMapComponentClient({
                 click: () => onMarkerClick(report)
               }}
             >
-              <Popup>
-                <div style={{ maxWidth: '200px' }}>
-                  <strong>{report.title}</strong>
+              <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
+                <div style={{ 
+                  maxWidth: '250px',
+                  padding: '12px 16px',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  background: 'rgba(255, 255, 255, 0.98)',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 20px rgba(102, 126, 234, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '8px'
+                  }}>
+                    <span style={{ 
+                      fontSize: '16px', 
+                      marginRight: '8px' 
+                    }}>
+                      {icon}
+                    </span>
+                    <span style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: color,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      {report.category}
+                    </span>
+                  </div>
+                  
+                  <h3 style={{ 
+                    margin: '0 0 8px 0', 
+                    fontSize: '15px', 
+                    fontWeight: '600',
+                    color: '#2d3748',
+                    lineHeight: '1.3'
+                  }}>
+                    {report.title}
+                  </h3>
+                  
                   {report.description && (
-                    <p style={{ margin: '4px 0' }}>{report.description}</p>
+                    <p style={{ 
+                      margin: '0 0 8px 0',
+                      fontSize: '13px',
+                      color: '#4a5568',
+                      lineHeight: '1.4'
+                    }}>
+                      {report.description.length > 80 
+                        ? report.description.substring(0, 80) + '...'
+                        : report.description
+                      }
+                    </p>
                   )}
+                  
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '11px',
+                    color: '#718096',
+                    fontWeight: '500'
+                  }}>
+                    <span>
+                      {new Date(report.timestamp).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                    {report.confirmations > 0 && (
+                      <span style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        padding: '2px 6px',
+                        borderRadius: '8px',
+                        fontSize: '10px',
+                        fontWeight: '600'
+                      }}>
+                        {report.confirmations} confirmed
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </Popup>
+              </Tooltip>
             </Marker>
           );
         })}
