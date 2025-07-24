@@ -14,6 +14,8 @@ interface MapComponentProps {
   highlightedReports?: Report[];
   filteredCategories?: ReportCategory[];
   onMarkerClick: (report: Report) => void;
+  onMarkerHover?: (report: Report) => void;
+  onMarkerHoverOut?: () => void;
   onScroll?: (event: any) => void;
 }
 
@@ -35,6 +37,8 @@ export default function WebMapComponentClient({
   selectedReport,
   highlightedReports = [],
   onMarkerClick,
+  onMarkerHover,
+  onMarkerHoverOut,
   onScroll,
   filteredCategories = []
 }: MapComponentProps) {
@@ -471,10 +475,12 @@ export default function WebMapComponentClient({
                 mouseover: (e) => {
                   const marker = e.target;
                   marker.openPopup();
+                  onMarkerHover?.(report);
                 },
                 mouseout: (e) => {
                   const marker = e.target;
                   marker.closePopup();
+                  onMarkerHoverOut?.();
                 }
               }}
             >

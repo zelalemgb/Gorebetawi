@@ -10,6 +10,8 @@ interface MapComponentProps {
   reports: Report[];
   selectedReport: Report | null;
   onMarkerClick: (report: Report) => void;
+  onMarkerHover?: (report: Report) => void;
+  onMarkerHoverOut?: () => void;
   onScroll?: (event: any) => void;
 }
 
