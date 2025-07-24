@@ -239,7 +239,7 @@ export default function WebMapComponentClient({
           const isVerified = report.status === 'confirmed';
           
           // Hide filtered out reports completely
-          const isFiltered = filteredCategories && filteredCategories.length > 0 && !filteredCategories.includes(report.category);
+          const isFiltered = filteredCategories && filteredCategories.length > 0 && !filteredCategories.includes(report.category as any);
           if (isFiltered) return null;
           
           const opacity = isExpired ? 0.5 : (isHighlighted ? 1 : 1);
@@ -254,13 +254,10 @@ export default function WebMapComponentClient({
             <Marker
               key={report.id}
               position={[report.location.latitude, report.location.longitude]}
-              eventHandlers={{
-                click: () => onMarkerClick(report)
-              }}
               icon={L.divIcon({
-                className: 'clean-report-marker',
+                className: `clean-report-marker marker-${report.id}`,
                 html: `
-                  <div style="
+                  <div onclick="window.handleMarkerClick && window.handleMarkerClick('${report.id}')" style="
                     width: 36px;
                     height: 36px;
                     display: flex;
@@ -272,6 +269,7 @@ export default function WebMapComponentClient({
                     opacity: ${opacity};
                     filter: ${isSelected ? 'drop-shadow(0 6px 16px rgba(102, 126, 234, 0.3))' : 
                              (isHighlighted ? 'drop-shadow(0 4px 12px rgba(102, 126, 234, 0.25))' : 'none')};
+                    cursor: pointer;
                   ">
                     
                     <!-- Highlight ring for trend-related reports -->
@@ -572,9 +570,36 @@ export default function WebMapComponentClient({
           );
         })}
       </MapContainer>
+      
+      {/* Global click handler setup */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.handleMarkerClick = function(reportId) {
+              const report = ${JSON.stringify(reports)}.find(r => r.id === reportId);
+              if (report && window.onMarkerClickCallback) {
+                window.onMarkerClickCallback(report);
+              }
+            };
+          `
+        }}
+      />
     </View>
   );
 }
+
+// Set up the callback when component mounts
+React.useEffect(() => {
+  if (typeof window !== 'undefined') {
+    window.onMarkerClickCallback = onMarkerClick;
+  }
+  
+  return () => {
+    if (typeof window !== 'undefined') {
+      window.onMarkerClickCallback = null;
+    }
+  };
+}, [onMarkerClick]);
 
 const styles = StyleSheet.create({
   container: {
