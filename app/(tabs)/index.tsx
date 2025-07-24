@@ -12,6 +12,7 @@ import FloatingActionButton from '@/components/FloatingActionButton';
 import ReportFormModal from '@/components/ReportFormModal';
 import MapComponent from '@/components/MapComponent';
 import CategoryFilterChips from '@/components/CategoryFilterChips';
+import FloatingSummaryBubble from '@/components/FloatingSummaryBubble';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -105,6 +106,18 @@ export default function MapScreen() {
     setReportFormVisible(false);
   };
 
+  const handleSummaryReportSelect = (report: Report) => {
+    setSelectedReport(report);
+    // Center map on selected report
+    setCenter([report.location.latitude, report.location.longitude]);
+    setZoom(17);
+  };
+
+  const handleSummaryExpand = () => {
+    // Optional: Could trigger additional UI changes when summary expands
+    console.log('Summary expanded');
+  };
+
   // Calculate report counts by category
   const reportCounts = reports.reduce((acc, report) => {
     acc[report.category] = (acc[report.category] || 0) + 1;
@@ -192,6 +205,17 @@ export default function MapScreen() {
           reportCounts={reportCounts}
         />
       )}
+      
+      {/* Floating Summary Bubble */}
+      <FloatingSummaryBubble
+        reports={reports}
+        userLocation={location ? {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        } : null}
+        onReportSelect={handleSummaryReportSelect}
+        onExpand={handleSummaryExpand}
+      />
       
       {/* Report Preview */}
       {selectedReport && (
