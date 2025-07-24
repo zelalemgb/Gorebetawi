@@ -234,14 +234,21 @@ export default function WebMapComponentClient({
           const color = getCategoryColor(report.category);
           const icon = getCategoryIcon(report.category);
           const isSelected = selectedReport?.id === report.id;
-          const isFresh = Date.now() - report.timestamp < 3600000; // < 1 hour
+          const isFresh = Date.now() - report.timestamp < 7200000; // < 2 hours
           const isOngoing = report.metadata?.duration === 'ongoing';
           const isExpired = report.expiresAt ? Date.now() > report.expiresAt : false;
           const isSponsored = report.isSponsored;
+          const isVerified = report.status === 'confirmed';
           
           // Determine opacity for filtered reports
           const isFiltered = filteredCategories.length > 0 && !filteredCategories.includes(report.category);
           const opacity = isFiltered ? 0.3 : (isExpired ? 0.5 : 1);
+          
+          // Enhanced animations for important pins
+          const shouldAnimate = isFresh || isOngoing || isSponsored || isVerified;
+          const animationType = isSponsored ? 'sponsored' : 
+                              (isFresh ? 'fresh' : 
+                              (isOngoing ? 'ongoing' : 'verified'));
           
           return (
             <Marker
@@ -260,53 +267,58 @@ export default function WebMapComponentClient({
                     align-items: center;
                     justify-content: center;
                     position: relative;
-                    transform: scale(${isSelected ? 1.15 : 1});
+                    transform: scale(${isSelected ? 1.2 : 1});
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     opacity: ${opacity};
-                    filter: ${isSelected ? 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))' : 'none'};
+                    filter: ${isSelected ? 'drop-shadow(0 6px 16px rgba(102, 126, 234, 0.3))' : 'none'};
                   ">
+                    
+                    <!-- Enhanced animations for important pins -->
                     ${isSponsored ? `
                       <div style="
                         position: absolute; 
-                        width: 44px;
-                        height: 44px;
-                        border: 1.5px solid #667eea;
+                        width: 48px;
+                        height: 48px;
+                        border: 2px dashed #667eea;
                         border-radius: 50%;
-                        opacity: 0.5;
-                        animation: sponsoredGlow 4s ease-in-out infinite;
+                        opacity: 0.6;
+                        animation: sponsoredOrbit 4s linear infinite;
                       "></div>
                     ` : ''}
                     
-                    ${(isOngoing || isFresh) && !isExpired ? `
+                    ${shouldAnimate && !isExpired ? `
                       <div style="
                         position: absolute;
-                        width: 42px;
-                        height: 42px;
+                        width: ${isFresh ? '50px' : '44px'};
+                        height: ${isFresh ? '50px' : '44px'};
                         background-color: ${color};
                         border-radius: 50%;
-                        opacity: 0.15;
-                        animation: ${isOngoing ? 'gentleRipple' : 'subtlePing'} ${isOngoing ? '4s' : '3s'} infinite;
+                        opacity: ${isFresh ? '0.2' : '0.15'};
+                        animation: ${isFresh ? 'freshPing' : (isOngoing ? 'ongoingRipple' : 'verifiedGlow')} ${isFresh ? '2s' : '3s'} infinite;
                       "></div>
                     ` : ''}
                     
+                    <!-- Enhanced pin body with gradient -->
                     <div style="
                       width: 30px;
                       height: 30px;
-                      background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);
-                      border: 2.5px solid white;
+                      background: linear-gradient(135deg, ${color} 0%, ${color}cc 100%);
+                      border: 3px solid white;
                       border-radius: 50%;
                       display: flex;
                       align-items: center;
                       justify-content: center;
                       font-size: 13px;
-                      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+                      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2), 0 2px 6px rgba(0,0,0,0.1);
                       position: relative;
                       z-index: 2;
                       transition: all 0.2s ease;
+                      ${isFresh ? 'animation: pinPulse 2s ease-in-out infinite;' : ''}
                     ">
                       ${icon}
                     </div>
                     
+                    <!-- Enhanced confirmation badge -->
                     ${report.confirmations > 0 ? `
                       <div style="
                         position: absolute;
@@ -324,12 +336,14 @@ export default function WebMapComponentClient({
                         font-weight: 600;
                         border: 2px solid white;
                         z-index: 3;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                        box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+                        ${isVerified ? 'animation: confirmationGlow 2s ease-in-out infinite;' : ''}
                       ">
                         ${report.confirmations}
                       </div>
                     ` : ''}
                     
+                    <!-- Enhanced status indicators -->
                     ${report.status === 'confirmed' ? `
                       <div style="
                         position: absolute;
@@ -341,7 +355,8 @@ export default function WebMapComponentClient({
                         border: 2px solid white;
                         border-radius: 50%;
                         z-index: 3;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3);
+                        animation: statusGlow 3s ease-in-out infinite;
                       "></div>
                     ` : ''}
                     
@@ -356,23 +371,62 @@ export default function WebMapComponentClient({
                         border: 2px solid white;
                         border-radius: 50%;
                         z-index: 3;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        box-shadow: 0 2px 4px rgba(104, 211, 145, 0.3);
+                      "></div>
+                    ` : ''}
+                    
+                    <!-- Fresh report indicator -->
+                    ${isFresh ? `
+                      <div style="
+                        position: absolute;
+                        top: -6px;
+                        left: -6px;
+                        width: 8px;
+                        height: 8px;
+                        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+                        border: 1px solid white;
+                        border-radius: 50%;
+                        z-index: 4;
+                        animation: freshIndicator 1.5s ease-in-out infinite;
+                        box-shadow: 0 1px 3px rgba(255, 107, 107, 0.4);
                       "></div>
                     ` : ''}
                   </div>
                   
+                  <!-- Enhanced CSS animations -->
                   <style>
-                    @keyframes gentleRipple {
+                    @keyframes freshPing {
+                      0% { transform: scale(1); opacity: 0.2; }
+                      50% { transform: scale(1.15); opacity: 0.1; }
+                      100% { transform: scale(1.3); opacity: 0; }
+                    }
+                    @keyframes ongoingRipple {
                       0%, 100% { transform: scale(1); opacity: 0.15; }
-                      50% { transform: scale(1.08); opacity: 0.08; }
+                      50% { transform: scale(1.1); opacity: 0.08; }
                     }
-                    @keyframes subtlePing {
-                      0% { transform: scale(1); opacity: 0.15; }
-                      100% { transform: scale(1.2); opacity: 0; }
+                    @keyframes verifiedGlow {
+                      0%, 100% { transform: scale(1); opacity: 0.1; }
+                      50% { transform: scale(1.05); opacity: 0.05; }
                     }
-                    @keyframes sponsoredGlow {
-                      0%, 100% { opacity: 0.5; transform: scale(1); }
-                      50% { opacity: 0.3; transform: scale(1.02); }
+                    @keyframes sponsoredOrbit {
+                      0% { transform: rotate(0deg); }
+                      100% { transform: rotate(360deg); }
+                    }
+                    @keyframes pinPulse {
+                      0%, 100% { transform: scale(1); }
+                      50% { transform: scale(1.05); }
+                    }
+                    @keyframes confirmationGlow {
+                      0%, 100% { box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3); }
+                      50% { box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5); }
+                    }
+                    @keyframes statusGlow {
+                      0%, 100% { box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3); }
+                      50% { box-shadow: 0 3px 8px rgba(72, 187, 120, 0.5); }
+                    }
+                    @keyframes freshIndicator {
+                      0%, 100% { transform: scale(1); opacity: 1; }
+                      50% { transform: scale(1.2); opacity: 0.7; }
                     }
                   </style>
                 `,

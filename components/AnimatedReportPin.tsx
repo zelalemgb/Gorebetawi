@@ -76,8 +76,8 @@ export default function AnimatedReportPin({
   const rotation = useSharedValue(0);
   const glowScale = useSharedValue(1);
   
-  // Determine if report is fresh (< 1 hour)
-  const isFresh = Date.now() - report.timestamp < 3600000;
+  // Determine if report is fresh (< 2 hours)
+  const isFresh = Date.now() - report.timestamp < 7200000;
   
   // Determine if report is ongoing
   const isOngoing = report.metadata?.duration === 'ongoing' || 
