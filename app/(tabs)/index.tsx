@@ -76,6 +76,14 @@ export default function MapScreen() {
     trackInteraction(); // Reset idle timer on interaction
   };
 
+  const handleMarkerHover = (report: Report) => {
+    setSelectedReport(report);
+  };
+
+  const handleMarkerHoverOut = () => {
+    setSelectedReport(null);
+  };
+
   const handleClosePreview = () => {
     setSelectedReport(null);
     trackInteraction();
@@ -178,6 +186,8 @@ export default function MapScreen() {
         reports={filteredReports}
         selectedReport={selectedReport}
         onMarkerClick={handleMarkerClick}
+        onMarkerHover={handleMarkerHover}
+        onMarkerHoverOut={handleMarkerHoverOut}
         highlightedReports={highlightedReports}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: headerAnimation } } }],

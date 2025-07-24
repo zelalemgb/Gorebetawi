@@ -11,6 +11,8 @@ interface MapComponentProps {
   highlightedReports?: Report[];
   filteredCategories?: ReportCategory[];
   onMarkerClick: (report: Report) => void;
+  onMarkerHover?: (report: Report) => void;
+  onMarkerHoverOut?: () => void;
   onScroll?: (event: any) => void;
 }
 
