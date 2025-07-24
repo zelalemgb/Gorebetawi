@@ -23,15 +23,13 @@ export default function ReportMarker({
         latitude: report.location.latitude,
         longitude: report.location.longitude,
       }}
-      onPress={() => onPress(report)}
       tracksViewChanges={false}
     >
       <TouchableOpacity onPress={() => onPress(report)} activeOpacity={0.8}>
-        <AnimatedReportPin 
-          report={report} 
+        <AnimatedReportPin
+          report={report}
           isSelected={selected}
           isHighlighted={highlighted}
-          onPress={() => onPress(report)}
         />
       </TouchableOpacity>
     </Marker>

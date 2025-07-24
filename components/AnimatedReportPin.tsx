@@ -17,7 +17,6 @@ interface AnimatedReportPinProps {
   report: Report;
   isSelected?: boolean;
   isHighlighted?: boolean;
-  onPress?: () => void;
 }
 
 const CATEGORY_CONFIG = {
@@ -63,11 +62,10 @@ const CATEGORY_CONFIG = {
   }
 };
 
-export default function AnimatedReportPin({ 
-  report, 
-  isSelected = false, 
+export default function AnimatedReportPin({
+  report,
+  isSelected = false,
   isHighlighted = false,
-  onPress 
 }: AnimatedReportPinProps) {
   const config = CATEGORY_CONFIG[report.category];
   const IconComponent = config.icon;
