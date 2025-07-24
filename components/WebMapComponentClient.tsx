@@ -11,6 +11,7 @@ interface MapComponentProps {
   zoom: number;
   reports: Report[];
   selectedReport: Report | null;
+  highlightedReports?: Report[];
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
   filteredCategories?: string[];
@@ -32,6 +33,7 @@ export default function WebMapComponentClient({
   zoom,
   reports,
   selectedReport,
+  highlightedReports = [],
   onMarkerClick,
   onScroll,
   filteredCategories = []
@@ -234,6 +236,7 @@ export default function WebMapComponentClient({
           const color = getCategoryColor(report.category);
           const icon = getCategoryIcon(report.category);
           const isSelected = selectedReport?.id === report.id;
+          const isHighlighted = highlightedReports.some(hr => hr.id === report.id);
           const isFresh = Date.now() - report.timestamp < 7200000; // < 2 hours
           const isOngoing = report.metadata?.duration === 'ongoing';
           const isExpired = report.expiresAt ? Date.now() > report.expiresAt : false;
@@ -242,7 +245,7 @@ export default function WebMapComponentClient({
           
           // Determine opacity for filtered reports
           const isFiltered = filteredCategories.length > 0 && !filteredCategories.includes(report.category);
-          const opacity = isFiltered ? 0.3 : (isExpired ? 0.5 : 1);
+          const opacity = isFiltered ? 0.3 : (isExpired ? 0.5 : (isHighlighted ? 1 : 1));
           
           // Enhanced animations for important pins
           const shouldAnimate = isFresh || isOngoing || isSponsored || isVerified;
@@ -267,11 +270,25 @@ export default function WebMapComponentClient({
                     align-items: center;
                     justify-content: center;
                     position: relative;
-                    transform: scale(${isSelected ? 1.2 : 1});
+                    transform: scale(${isSelected ? 1.2 : (isHighlighted ? 1.15 : 1)});
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     opacity: ${opacity};
-                    filter: ${isSelected ? 'drop-shadow(0 6px 16px rgba(102, 126, 234, 0.3))' : 'none'};
+                    filter: ${isSelected ? 'drop-shadow(0 6px 16px rgba(102, 126, 234, 0.3))' : 
+                             (isHighlighted ? 'drop-shadow(0 4px 12px rgba(102, 126, 234, 0.25))' : 'none')};
                   ">
+                    
+                    <!-- Highlight ring for trend-related reports -->
+                    ${isHighlighted ? `
+                      <div style="
+                        position: absolute;
+                        width: 44px;
+                        height: 44px;
+                        border: 2px solid #667eea;
+                        border-radius: 50%;
+                        opacity: 0.6;
+                        animation: highlightPulse 2s ease-in-out infinite;
+                      "></div>
+                    ` : ''}
                     
                     <!-- Enhanced animations for important pins -->
                     ${isSponsored ? `
@@ -427,6 +444,10 @@ export default function WebMapComponentClient({
                     @keyframes freshIndicator {
                       0%, 100% { transform: scale(1); opacity: 1; }
                       50% { transform: scale(1.2); opacity: 0.7; }
+                    }
+                    @keyframes highlightPulse {
+                      0%, 100% { transform: scale(1); opacity: 0.6; }
+                      50% { transform: scale(1.05); opacity: 0.8; }
                     }
                   </style>
                 `,

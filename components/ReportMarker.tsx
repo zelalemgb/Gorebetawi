@@ -8,9 +8,15 @@ interface ReportMarkerProps {
   report: Report;
   onPress: (report: Report) => void;
   selected?: boolean;
+  highlighted?: boolean;
 }
 
-export default function ReportMarker({ report, onPress, selected = false }: ReportMarkerProps) {
+export default function ReportMarker({ 
+  report, 
+  onPress, 
+  selected = false, 
+  highlighted = false 
+}: ReportMarkerProps) {
   return (
     <Marker
       coordinate={{
@@ -24,6 +30,7 @@ export default function ReportMarker({ report, onPress, selected = false }: Repo
         <AnimatedReportPin 
           report={report} 
           isSelected={selected}
+          isHighlighted={highlighted}
           onPress={() => onPress(report)}
         />
       </TouchableOpacity>

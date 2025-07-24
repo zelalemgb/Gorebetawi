@@ -6,6 +6,7 @@ import { LightTheme } from '@/constants/Colors';
 import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
 import { useUserTrail } from '@/hooks/useUserTrail';
+import { useMapIdle } from '@/hooks/useMapIdle';
 import { Report, ReportCategory } from '@/types';
 import ReportPreview from '@/components/ReportPreview';
 import FloatingActionButton from '@/components/FloatingActionButton';
@@ -14,6 +15,7 @@ import MapComponent from '@/components/MapComponent';
 import CategoryFilterChips from '@/components/CategoryFilterChips';
 import FloatingSummaryBubble from '@/components/FloatingSummaryBubble';
 import CategoryIconToolbar from '@/components/CategoryIconToolbar';
+import TrendInsightBubble from '@/components/TrendInsightBubble';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -26,10 +28,16 @@ export default function MapScreen() {
     addConfirmPoint 
   } = useUserTrail();
   
+  const { isIdle, trackInteraction } = useMapIdle({ 
+    idleDelay: 10000, // 10 seconds before considering idle
+    resetOnInteraction: true 
+  });
+  
   const [selectedCategories, setSelectedCategories] = useState<ReportCategory[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>(reports);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reportFormVisible, setReportFormVisible] = useState(false);
+  const [highlightedReports, setHighlightedReports] = useState<Report[]>([]);
   
   const headerAnimation = useRef(new Animated.Value(0)).current;
   
@@ -70,10 +78,12 @@ export default function MapScreen() {
   const handleMarkerClick = (report: Report) => {
     setSelectedReport(report);
     addViewPoint(report.location.latitude, report.location.longitude);
+    trackInteraction(); // Reset idle timer on interaction
   };
 
   const handleClosePreview = () => {
     setSelectedReport(null);
+    trackInteraction();
   };
 
   const handleViewDetails = (report: Report) => {
@@ -104,6 +114,7 @@ export default function MapScreen() {
         ? prev.filter(c => c !== category)
         : [...prev, category]
     );
+    trackInteraction();
   };
 
   const handleAddReport = () => {
@@ -111,10 +122,12 @@ export default function MapScreen() {
     if (location) {
       addReportPoint(location.coords.latitude, location.coords.longitude);
     }
+    trackInteraction();
   };
 
   const handleCloseReportForm = () => {
     setReportFormVisible(false);
+    trackInteraction();
   };
 
   const handleSummaryReportSelect = (report: Report) => {
@@ -122,11 +135,24 @@ export default function MapScreen() {
     // Center map on selected report
     setCenter([report.location.latitude, report.location.longitude]);
     setZoom(17);
+    trackInteraction();
   };
 
   const handleSummaryExpand = () => {
     // Optional: Could trigger additional UI changes when summary expands
     console.log('Summary expanded');
+  };
+
+  const handleHighlightReports = (reports: Report[]) => {
+    setHighlightedReports(reports);
+    // Clear highlights after 5 seconds
+    setTimeout(() => {
+      setHighlightedReports([]);
+    }, 5000);
+  };
+
+  const handleTrendDismiss = () => {
+    // Optional: Could track dismissal analytics
   };
 
   // Calculate report counts by category
@@ -157,6 +183,7 @@ export default function MapScreen() {
         reports={filteredReports}
         selectedReport={selectedReport}
         onMarkerClick={handleMarkerClick}
+        highlightedReports={highlightedReports}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: headerAnimation } } }],
           { useNativeDriver: false }
@@ -228,6 +255,18 @@ export default function MapScreen() {
         } : null}
         onReportSelect={handleSummaryReportSelect}
         onExpand={handleSummaryExpand}
+      />
+      
+      {/* Trend Insight Bubble */}
+      <TrendInsightBubble
+        reports={reports}
+        userLocation={location ? {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        } : null}
+        isMapIdle={isIdle}
+        onHighlightReports={handleHighlightReports}
+        onDismiss={handleTrendDismiss}
       />
       
       {/* Report Preview */}

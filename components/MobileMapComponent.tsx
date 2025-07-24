@@ -10,6 +10,7 @@ interface MapComponentProps {
   zoom: number;
   reports: Report[];
   selectedReport: Report | null;
+  highlightedReports?: Report[];
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
   filteredCategories?: string[];
@@ -27,6 +28,7 @@ export default function MobileMapComponent({
   zoom,
   reports,
   selectedReport,
+  highlightedReports = [],
   onMarkerClick,
   onScroll,
   filteredCategories = [],
@@ -104,6 +106,7 @@ export default function MobileMapComponent({
           report={report}
           onPress={onMarkerClick}
           selected={selectedReport?.id === report.id}
+          highlighted={highlightedReports.some(hr => hr.id === report.id)}
         />
       ))}
     </MapView>
@@ -176,36 +179,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#718096',
     fontWeight: '500',
-  },
-});
-
-      >
-        <Callout>
-          <CalloutView />
-        </Callout>
-      </Marker>
-      {visibleReports.map(report => (
-        <ReportMarker
-          key={report.id}
-          report={report}
-          onPress={onMarkerClick}
-          selected={selectedReport?.id === report.id}
-        />
-      ))}
-    </MapView>
-  );
-}
-
-function CalloutView() {
-  return (
-    <View style={{ padding: 4 }}>
-      <Text style={{ fontSize: 12, fontWeight: 'bold' }}>Your Location</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  map: {
-    flex: 1,
   },
 });

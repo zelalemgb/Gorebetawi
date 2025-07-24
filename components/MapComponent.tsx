@@ -8,6 +8,7 @@ interface MapComponentProps {
   zoom: number;
   reports: Report[];
   selectedReport: Report | null;
+  highlightedReports?: Report[];
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
   filteredCategories?: string[];

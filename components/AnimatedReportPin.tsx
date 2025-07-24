@@ -16,6 +16,7 @@ import { Report, ReportCategory } from '@/types';
 interface AnimatedReportPinProps {
   report: Report;
   isSelected?: boolean;
+  isHighlighted?: boolean;
   onPress?: () => void;
 }
 
@@ -65,6 +66,7 @@ const CATEGORY_CONFIG = {
 export default function AnimatedReportPin({ 
   report, 
   isSelected = false, 
+  isHighlighted = false,
   onPress 
 }: AnimatedReportPinProps) {
   const config = CATEGORY_CONFIG[report.category];
@@ -75,6 +77,7 @@ export default function AnimatedReportPin({
   const opacity = useSharedValue(1);
   const rotation = useSharedValue(0);
   const glowScale = useSharedValue(1);
+  const highlightScale = useSharedValue(1);
   
   // Determine if report is fresh (< 2 hours)
   const isFresh = Date.now() - report.timestamp < 7200000;
@@ -175,12 +178,26 @@ export default function AnimatedReportPin({
     } else if (!isFresh && !isOngoing) {
       scale.value = withTiming(1, { duration: 200 });
     }
-  }, [isFresh, isOngoing, isExpired, isSelected, report.isSponsored]);
+    
+    // Highlighted state for trend insights
+    if (isHighlighted) {
+      highlightScale.value = withRepeat(
+        withSequence(
+          withTiming(1.1, { duration: 1000 }),
+          withTiming(1, { duration: 1000 })
+        ),
+        3, // Pulse 3 times
+        false
+      );
+    } else {
+      scale.value = withTiming(1, { duration: 200 });
+    }
+  }, [isFresh, isOngoing, isExpired, isSelected, isHighlighted, report.isSponsored]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { scale: scale.value },
+        { scale: scale.value * highlightScale.value },
         { rotate: `${rotation.value}deg` }
       ],
       opacity: opacity.value,
@@ -205,6 +222,13 @@ export default function AnimatedReportPin({
 
   return (
     <View style={styles.container}>
+      {/* Highlight ring for trend insights */}
+      {isHighlighted && (
+        <Animated.View style={[styles.highlightRing, { borderColor: CATEGORY_CONFIG[report.category].color }]}>
+          <View style={[styles.highlightInner, { borderColor: CATEGORY_CONFIG[report.category].color }]} />
+        </Animated.View>
+      )}
+      
       {/* Sponsored halo */}
       {report.isSponsored && (
         <Animated.View style={[styles.sponsoredHalo, sponsoredHaloStyle]}>
@@ -356,5 +380,27 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 2,
+  },
+  highlightRing: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderStyle: 'solid',
+    zIndex: 2,
+    top: -5,
+    left: -5,
+  },
+  highlightInner: {
+    position: 'absolute',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    top: 2,
+    left: 2,
+    opacity: 0.6,
   },
 });
