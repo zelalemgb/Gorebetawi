@@ -72,7 +72,7 @@ export default function WebMapComponentClient({
         center={center}
         zoom={zoom}
         style={styles.map}
-        zoomControl={true}
+        zoomControl={false}
         scrollWheelZoom={true}
         attributionControl={false}
       >
