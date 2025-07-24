@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#667eea',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 0,

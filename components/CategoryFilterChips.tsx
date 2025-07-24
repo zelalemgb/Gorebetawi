@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   countBadge: {
     marginLeft: 6,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#667eea',
     borderRadius: 12,
     minWidth: 20,
     height: 20,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   countBadgeSelected: {
-    background: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     backdropFilter: 'blur(4px)',
   },
   countText: {
