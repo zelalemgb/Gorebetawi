@@ -32,3 +32,14 @@ npm run dev
 ```
 
 If the environment variables are missing, the app will throw an error during startup.
+
+## Linting
+
+This project uses Expo's built-in linter. To run the lint checks locally first install the dependencies and then run the `lint` script:
+
+```bash
+npm install
+npm run lint
+```
+
+The script uses `npx expo` so you do not need to install the Expo CLI globally.
