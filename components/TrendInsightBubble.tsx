@@ -15,21 +15,7 @@ import Animated, {
   runOnJS,
   Easing
 } from 'react-native-reanimated';
-import { 
-  TrendingUp, 
-  Users, 
-  Clock, 
-  MapPin,
-  X,
-  Lightbulb, 
-  Droplet, 
-  Fuel, 
-  DollarSign, 
-  Car, 
-  HardHat, 
-  Leaf, 
-  AlertTriangle
-} from 'lucide-react-native';
+import { TrendingUp, Users, Clock, MapPin, X, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Leaf, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import { Report, ReportCategory } from '@/types';
 import { formatDistanceToNow } from '@/utils/dateUtils';
