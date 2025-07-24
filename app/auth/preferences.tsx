@@ -55,12 +55,15 @@ export default function PreferencesScreen() {
   };
 
   const handleSave = async () => {
-    await updateUserPreferences({
+    const success = await updateUserPreferences({
       interestedCategories: selectedCategories,
       alwaysAnonymous,
       enableLocationAccess: enableLocation,
     });
-    router.replace('/(tabs)');
+    
+    if (success) {
+      router.replace('/(tabs)');
+    }
   };
 
   const handleSkip = () => {

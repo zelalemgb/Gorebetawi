@@ -24,18 +24,12 @@ export async function signUpWithEmail(email: string, password: string) {
   return supabase.auth.signUp({ 
     email, 
     password,
-    options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-    }
   });
 }
 
 export async function signInWithSocial(provider: 'google' | 'apple') {
   return supabase.auth.signInWithOAuth({
     provider,
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    }
   });
 }
 

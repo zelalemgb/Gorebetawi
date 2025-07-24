@@ -86,7 +86,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (validateForm()) {
-      const success = await signUp(email, password);
+      const success = await signUp(email, password, name);
       if (success) {
         router.push('/auth/role-selection');
       }

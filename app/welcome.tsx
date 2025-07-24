@@ -1,12 +1,23 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MapPin, Users } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  // Redirect to main app if user is already logged in
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!loading && user) {
+        router.replace('/(tabs)');
+      }
+    }, [user, loading, router])
+  );
 
   const handleCreateAccount = () => {
     router.push('/auth/register');
@@ -15,6 +26,17 @@ export default function WelcomeScreen() {
   const handleBrowseWithoutAccount = () => {
     router.push('/(tabs)');
   };
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -148,5 +170,15 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: LightTheme.secondaryText,
   },
 });

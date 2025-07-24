@@ -48,8 +48,10 @@ export default function RoleSelectionScreen() {
   ];
 
   const handleContinue = async () => {
-    await updateUserRole(selectedRole);
-    router.push('/auth/preferences');
+    const success = await updateUserRole(selectedRole);
+    if (success) {
+      router.push('/auth/preferences');
+    }
   };
 
   const handleSkip = () => {

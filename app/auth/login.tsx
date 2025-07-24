@@ -58,6 +58,7 @@ export default function LoginScreen() {
     if (validateForm()) {
       const success = await signIn(email, password);
       if (success) {
+        // Check if user has completed onboarding
         router.replace('/(tabs)');
       }
     }
