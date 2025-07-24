@@ -12,9 +12,9 @@ interface MapComponentProps {
   reports: Report[];
   selectedReport: Report | null;
   highlightedReports?: Report[];
+  filteredCategories?: ReportCategory[];
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
-  filteredCategories?: string[];
 }
 
 // Custom hook to update map view when center/zoom changes
@@ -65,11 +65,6 @@ export default function WebMapComponentClient({
     };
     return icons[category] || '📍';
   };
-
-  // Filter reports based on selected categories
-  const visibleReports = filteredCategories.length > 0 
-    ? reports.filter(report => filteredCategories.includes(report.category))
-    : reports;
 
   return (
     <View style={styles.container}>
@@ -232,7 +227,7 @@ export default function WebMapComponentClient({
         </Marker>
         
         {/* Elegant minimalist report markers */}
-        {visibleReports.map((report) => {
+        {reports.map((report) => {
           const color = getCategoryColor(report.category);
           const icon = getCategoryIcon(report.category);
           const isSelected = selectedReport?.id === report.id;
@@ -243,9 +238,11 @@ export default function WebMapComponentClient({
           const isSponsored = report.isSponsored;
           const isVerified = report.status === 'confirmed';
           
-          // Determine opacity for filtered reports
-          const isFiltered = filteredCategories.length > 0 && !filteredCategories.includes(report.category);
-          const opacity = isFiltered ? 0.3 : (isExpired ? 0.5 : (isHighlighted ? 1 : 1));
+          // Hide filtered out reports completely
+          const isFiltered = filteredCategories && filteredCategories.length > 0 && !filteredCategories.includes(report.category);
+          if (isFiltered) return null;
+          
+          const opacity = isExpired ? 0.5 : (isHighlighted ? 1 : 1);
           
           // Enhanced animations for important pins
           const shouldAnimate = isFresh || isOngoing || isSponsored || isVerified;

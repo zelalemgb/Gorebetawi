@@ -34,7 +34,6 @@ export default function MapScreen() {
   });
   
   const [selectedCategories, setSelectedCategories] = useState<ReportCategory[]>([]);
-  const [filteredReports, setFilteredReports] = useState<Report[]>(reports);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reportFormVisible, setReportFormVisible] = useState(false);
   const [highlightedReports, setHighlightedReports] = useState<Report[]>([]);
@@ -64,15 +63,11 @@ export default function MapScreen() {
     }
   }, [location, hasUserLocation, addViewPoint]);
 
-  // Filter reports when categories or reports change
-  useEffect(() => {
-    if (mountedRef.current) {
-      setFilteredReports(
-        selectedCategories.length > 0
-          ? filterReportsByCategory(selectedCategories)
-          : reports
-      );
-    }
+  // Calculate filtered reports based on selected categories
+  const filteredReports = React.useMemo(() => {
+    return selectedCategories.length > 0
+      ? filterReportsByCategory(selectedCategories)
+      : reports;
   }, [selectedCategories, reports, filterReportsByCategory]);
 
   const handleMarkerClick = (report: Report) => {

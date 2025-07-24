@@ -10,9 +10,10 @@ interface MapComponentProps {
   zoom: number;
   reports: Report[];
   selectedReport: Report | null;
+  highlightedReports?: Report[];
+  filteredCategories?: ReportCategory[];
   onMarkerClick: (report: Report) => void;
   onScroll?: (event: any) => void;
-  filteredCategories?: string[];
 }
 
 const zoomToDelta = (zoom: number) => {
@@ -27,9 +28,10 @@ export default function MobileMapComponent({
   zoom,
   reports,
   selectedReport,
+  highlightedReports = [],
+  filteredCategories,
   onMarkerClick,
   onScroll,
-  filteredCategories = [],
 }: MapComponentProps) {
   const mapRef = useRef<MapView | null>(null);
   const region = {
@@ -44,10 +46,10 @@ export default function MobileMapComponent({
     }
   }, [region]);
 
-  const visibleReports =
-    filteredCategories.length > 0
-      ? reports.filter(r => filteredCategories.includes(r.category))
-      : reports;
+  // Filter reports based on selected categories
+  const visibleReports = filteredCategories && filteredCategories.length > 0
+    ? reports.filter(r => filteredCategories.includes(r.category))
+    : reports;
 
   return (
     <MapView
@@ -104,6 +106,7 @@ export default function MobileMapComponent({
           report={report}
           onPress={onMarkerClick}
           selected={selectedReport?.id === report.id}
+          highlighted={highlightedReports.some(hr => hr.id === report.id)}
         />
       ))}
     </MapView>
