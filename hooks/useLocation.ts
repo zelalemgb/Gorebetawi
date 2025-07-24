@@ -27,7 +27,7 @@ export function useLocation() {
         if (status !== 'granted') {
           setState({
             location: null,
-            errorMsg: 'Permission to access location was denied',
+            errorMsg: 'Enable location to see what\'s happening near you',
             loading: false,
           });
           return;
@@ -35,7 +35,8 @@ export function useLocation() {
 
         // Get initial location
         const initialLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
+          accuracy: Location.Accuracy.High,
+          maximumAge: 10000, // Use cached location if less than 10 seconds old
         });
         
         if (!mounted.current) return;
@@ -50,9 +51,9 @@ export function useLocation() {
         if (Platform.OS !== 'web') {
           locationSubscription = await Location.watchPositionAsync(
             {
-              accuracy: Location.Accuracy.Balanced,
+              accuracy: Location.Accuracy.High,
               timeInterval: 10000,
-              distanceInterval: 10,
+              distanceInterval: 20, // Update when user moves 20m
             },
             (newLocation) => {
               if (mounted.current) {
@@ -68,7 +69,7 @@ export function useLocation() {
         if (mounted.current) {
           setState({
             location: null,
-            errorMsg: 'Failed to get location',
+            errorMsg: 'Enable location to see what\'s happening near you',
             loading: false,
           });
         }

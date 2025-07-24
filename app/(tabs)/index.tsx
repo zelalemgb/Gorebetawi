@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, Animated, Platform, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, Animated, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { Search, Menu } from 'lucide-react-native';
+import { Search, Menu, MapPin } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
@@ -16,7 +16,7 @@ import CategoryFilterChips from '@/components/CategoryFilterChips';
 export default function MapScreen() {
   const router = useRouter();
   const { reports, loading, error, confirmReport, filterReportsByCategory } = useReports();
-  const { location } = useLocation();
+  const { location, loading: locationLoading, errorMsg: locationError } = useLocation();
   const { 
     trailPoints, 
     addViewPoint, 
@@ -31,18 +31,20 @@ export default function MapScreen() {
   
   const headerAnimation = useRef(new Animated.Value(0)).current;
   
-  // Initial center - Bole, Addis Ababa
-  const [center, setCenter] = useState<[number, number]>([8.9806, 38.7578]);
-  const [zoom, setZoom] = useState(13);
+  // Initial center - will be updated when location is available
+  const [center, setCenter] = useState<[number, number]>([8.9806, 38.7578]); // Fallback to Bole, Addis Ababa
+  const [zoom, setZoom] = useState(15);
+  const [hasUserLocation, setHasUserLocation] = useState(false);
 
-  // Update map center when user location is available
+  // Update map center when user location is available for the first time
   useEffect(() => {
-    if (location) {
+    if (location && !hasUserLocation) {
       setCenter([location.coords.latitude, location.coords.longitude]);
-      setZoom(15);
+      setZoom(16); // Closer zoom for user area focus
       addViewPoint(location.coords.latitude, location.coords.longitude);
+      setHasUserLocation(true);
     }
-  }, [location, addViewPoint]);
+  }, [location, hasUserLocation, addViewPoint]);
 
   // Filter reports when categories or reports change
   useEffect(() => {
@@ -161,6 +163,27 @@ export default function MapScreen() {
         </SafeAreaView>
       </Animated.View>
       
+      {/* Location Status Overlay */}
+      {(locationLoading || locationError) && (
+        <View style={styles.locationStatusOverlay}>
+          <View style={styles.locationStatusCard}>
+            {locationLoading ? (
+              <>
+                <ActivityIndicator size="small" color={LightTheme.accent} />
+                <Text style={styles.locationStatusText}>Getting your location...</Text>
+              </>
+            ) : locationError ? (
+              <>
+                <MapPin size={20} color={LightTheme.secondaryText} />
+                <Text style={styles.locationStatusText}>
+                  Enable location to see what's happening near you
+                </Text>
+              </>
+            ) : null}
+          </View>
+        </View>
+      )}
+      
       {/* Category Filter Chips - Only show when needed */}
       {selectedCategories.length > 0 && (
         <CategoryFilterChips
@@ -276,6 +299,36 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#718096',
+    marginLeft: 8,
+  },
+  locationStatusOverlay: {
+    position: 'absolute',
+    top: 120,
+    left: 16,
+    right: 16,
+    zIndex: 20,
+    alignItems: 'center',
+  },
+  locationStatusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: 'rgba(102, 126, 234, 0.3)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+    backdropFilter: 'blur(10px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  locationStatusText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: LightTheme.secondaryText,
     marginLeft: 8,
   },
   previewContainer: {

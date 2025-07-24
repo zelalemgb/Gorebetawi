@@ -89,54 +89,142 @@ export default function WebMapComponentClient({
         />
         
         {/* Minimalist user location with elegant radius */}
+        {/* User presence area - 500m radius */}
         <Circle
           center={center}
-          radius={300}
+          radius={500}
           pathOptions={{
             color: '#667eea',
             fillColor: '#667eea',
-            fillOpacity: 0.08,
+            fillOpacity: 0.06,
             weight: 1.5,
-            opacity: 0.6,
-            dashArray: '2, 4'
+            opacity: 0.4,
+            dashArray: '3, 6'
           }}
         />
+        
+        {/* Inner glow circle */}
+        <Circle
+          center={center}
+          radius={150}
+          pathOptions={{
+            color: '#667eea',
+            fillColor: '#667eea',
+            fillOpacity: 0.12,
+            weight: 0,
+            opacity: 0
+          }}
+        />
+        
         <Marker
           position={center}
           icon={L.divIcon({
             className: 'user-location-marker',
             html: `
-              <div style="
-                width: 14px;
-                height: 14px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border: 3px solid white;
-                border-radius: 50%;
-                box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
-                animation: gentlePulse 3s ease-in-out infinite;
-              "></div>
+              <div class="user-location-container">
+                <!-- Outer pulsing glow -->
+                <div class="user-glow-ring"></div>
+                
+                <!-- Middle soft ring -->
+                <div class="user-soft-ring"></div>
+                
+                <!-- Inner core dot -->
+                <div class="user-core-dot"></div>
+              </div>
+              
               <style>
-                @keyframes gentlePulse {
-                  0%, 100% { transform: scale(1); opacity: 1; }
-                  50% { transform: scale(1.1); opacity: 0.8; }
+                .user-location-container {
+                  position: relative;
+                  width: 32px;
+                  height: 32px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                }
+                
+                .user-glow-ring {
+                  position: absolute;
+                  width: 32px;
+                  height: 32px;
+                  background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.1) 50%, transparent 70%);
+                  border-radius: 50%;
+                  animation: userGlow 4s ease-in-out infinite;
+                }
+                
+                .user-soft-ring {
+                  position: absolute;
+                  width: 20px;
+                  height: 20px;
+                  background: rgba(102, 126, 234, 0.15);
+                  border: 1px solid rgba(102, 126, 234, 0.3);
+                  border-radius: 50%;
+                  animation: userSoftPulse 3s ease-in-out infinite;
+                }
+                
+                .user-core-dot {
+                  position: absolute;
+                  width: 12px;
+                  height: 12px;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  border: 2px solid white;
+                  border-radius: 50%;
+                  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+                  z-index: 3;
+                }
+                
+                @keyframes userGlow {
+                  0%, 100% { 
+                    transform: scale(1); 
+                    opacity: 0.6; 
+                  }
+                  50% { 
+                    transform: scale(1.2); 
+                    opacity: 0.3; 
+                  }
+                }
+                
+                @keyframes userSoftPulse {
+                  0%, 100% { 
+                    transform: scale(1); 
+                    opacity: 0.4; 
+                  }
+                  50% { 
+                    transform: scale(1.1); 
+                    opacity: 0.6; 
+                  }
                 }
               </style>
             `,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10],
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
           })}
         >
           <Popup>
-            <div style={{ textAlign: 'center', padding: '8px 12px' }}>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '12px 16px',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
               <h3 style={{ 
-                margin: '0 0 4px 0', 
-                fontSize: '13px', 
+                margin: '0 0 6px 0', 
+                fontSize: '15px', 
                 fontWeight: '600',
                 color: '#2d3748',
-                letterSpacing: '0.3px'
+                letterSpacing: '0.3px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
               }}>
-                Your Location
+                📍 Your Location
               </h3>
+              <p style={{
+                margin: 0,
+                fontSize: '12px',
+                color: '#718096',
+                fontWeight: '500'
+              }}>
+                Reports within 500m radius
+              </p>
             </div>
           </Popup>
         </Marker>
