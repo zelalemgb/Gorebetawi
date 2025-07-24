@@ -32,3 +32,8 @@ npm run dev
 ```
 
 If the environment variables are missing, the app will throw an error during startup.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
