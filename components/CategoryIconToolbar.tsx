@@ -76,7 +76,7 @@ const CATEGORY_CONFIG = [
   },
   {
     key: 'safety' as ReportCategory,
-    icon: TriangleAlert,
+    icon: AlertTriangle,
     color: '#E53935',
     label: 'Safety'
   }
