@@ -38,6 +38,20 @@ export default function WebMapComponentClient({
   onScroll,
   filteredCategories = []
 }: MapComponentProps) {
+  // Set up the callback when component mounts
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // expose the marker click handler so the injected HTML can trigger it
+      (window as any).onMarkerClickCallback = onMarkerClick;
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        (window as any).onMarkerClickCallback = null;
+      }
+    };
+  }, [onMarkerClick]);
+
   const getCategoryColor = (category: string) => {
     const categoryColors: Record<string, string> = {
       light: '#FDD835',
@@ -587,19 +601,6 @@ export default function WebMapComponentClient({
     </View>
   );
 }
-
-// Set up the callback when component mounts
-React.useEffect(() => {
-  if (typeof window !== 'undefined') {
-    window.onMarkerClickCallback = onMarkerClick;
-  }
-  
-  return () => {
-    if (typeof window !== 'undefined') {
-      window.onMarkerClickCallback = null;
-    }
-  };
-}, [onMarkerClick]);
 
 const styles = StyleSheet.create({
   container: {
