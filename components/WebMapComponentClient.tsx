@@ -481,6 +481,11 @@ export default function WebMapComponentClient({
                   const marker = e.target;
                   marker.closePopup();
                   onMarkerHoverOut?.();
+               },
+               click: (e) => {
+                 const marker = e.target;
+                 marker.closePopup();
+                 onMarkerClick(report);
                 }
               }}
             >
