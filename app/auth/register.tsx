@@ -86,9 +86,13 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (validateForm()) {
-      const success = await signUp(email, password, name);
+      console.log('📝 Starting registration process for:', email);
+      const success = await signUp(email, password, name.trim());
       if (success) {
+        console.log('✅ Registration successful, navigating to role selection');
         router.push('/auth/role-selection');
+      } else {
+        console.log('❌ Registration failed');
       }
     }
   };

@@ -56,10 +56,13 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (validateForm()) {
+      console.log('🔐 Starting login process for:', email);
       const success = await signIn(email, password);
       if (success) {
-        // Check if user has completed onboarding
+        console.log('✅ Login successful, navigating to main app');
         router.replace('/(tabs)');
+      } else {
+        console.log('❌ Login failed');
       }
     }
   };

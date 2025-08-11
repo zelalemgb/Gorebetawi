@@ -30,10 +30,18 @@ export async function signInWithEmail(email: string, password: string) {
 }
 
 export async function signUpWithEmail(email: string, password: string) {
-  return supabase.auth.signUp({ 
-    email, 
-    password,
+  const { data, error } = await supabase.auth.signUp({ 
+    email,
+    password
   });
+  
+  if (error) {
+    console.error('❌ Supabase signUp error:', error);
+    return { data: null, error };
+  }
+  
+  console.log('✅ Supabase signUp successful:', data.user?.email);
+  return { data, error: null };
 }
 
 export async function signInWithSocial(provider: 'google' | 'apple') {
@@ -61,7 +69,9 @@ export async function createUserProfile(userId: string, data: {
   role?: string;
   preferences?: any;
 }) {
-  return supabase
+  console.log('📝 Creating user profile in database:', { userId, email: data.email });
+  
+  const { data: profile, error } = await supabase
     .from('users')
     .insert({
       id: userId,
@@ -69,7 +79,17 @@ export async function createUserProfile(userId: string, data: {
       name: data.name,
       role: data.role,
       preferences: data.preferences || {},
-    });
+    })
+    .select()
+    .single();
+    
+  if (error) {
+    console.error('❌ Error creating user profile:', error);
+  } else {
+    console.log('✅ User profile created successfully:', profile);
+  }
+  
+  return { data: profile, error };
 }
 
 export async function updateUserProfile(userId: string, data: {
@@ -77,18 +97,45 @@ export async function updateUserProfile(userId: string, data: {
   role?: string;
   preferences?: any;
 }) {
-  return supabase
+  console.log('📝 Updating user profile:', { userId, ...data });
+  
+  const { data: profile, error } = await supabase
     .from('users')
-    .update(data)
-    .eq('id', userId);
+    .update({
+      ...data,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single();
+    
+  if (error) {
+    console.error('❌ Error updating user profile:', error);
+  } else {
+    console.log('✅ User profile updated successfully');
+  }
+  
+  return { data: profile, error };
 }
 
 export async function getUserProfile(userId: string) {
-  return supabase
+  console.log('👤 Fetching user profile for:', userId);
+  
+  const { data, error } = await supabase
     .from('users')
     .select('*')
     .eq('id', userId)
     .single();
+    
+  if (error && error.code !== 'PGRST116') {
+    console.error('❌ Error fetching user profile:', error);
+  } else if (data) {
+    console.log('✅ User profile fetched successfully:', data.email);
+  } else {
+    console.log('ℹ️ No user profile found for:', userId);
+  }
+  
+  return { data, error };
 }
 
 // Reports operations

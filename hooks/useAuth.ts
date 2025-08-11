@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { User } from '@/types';
 import { 
   supabase, 
-  getCurrentUser, 
-  signInWithEmail, 
-  signUpWithEmail, 
+  signInWithEmail,
+  signUpWithEmail,
   signInWithSocial,
   signOut as supabaseSignOut,
   createUserProfile,
@@ -18,56 +17,18 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkUser();
+    initializeAuth();
     
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state change:', event, session?.user?.id);
       
       if (session?.user) {
-        try {
-          // Get or create user profile
-          const { data: profile, error: profileError } = await getUserProfile(session.user.id);
-          
-          if (profileError && profileError.code === 'PGRST116') {
-            // User profile doesn't exist, create it
-            console.log('📝 Creating new user profile for:', session.user.email);
-            await createUserProfile(session.user.id, {
-              email: session.user.email!,
-              name: session.user.user_metadata.name || session.user.user_metadata.full_name,
-              role: session.user.user_metadata.role || 'observer',
-              preferences: session.user.user_metadata.preferences || {},
-            });
-            
-            // Fetch the newly created profile
-            const { data: newProfile } = await getUserProfile(session.user.id);
-            if (newProfile) {
-              console.log('✅ New profile created:', newProfile.email);
-              setUser({
-                id: newProfile.id,
-                email: newProfile.email,
-                name: newProfile.name,
-                role: newProfile.role as User['role'],
-                preferences: newProfile.preferences,
-              });
-            }
-          } else if (profile) {
-            console.log('👤 Existing profile found:', profile.email);
-            setUser({
-              id: profile.id,
-              email: profile.email,
-              name: profile.name,
-              role: profile.role as User['role'],
-              preferences: profile.preferences,
-            });
-          }
-        } catch (err) {
-          console.error('❌ Error handling auth state change:', err);
-          setError('Failed to load user profile');
-        }
+        await handleUserSession(session.user);
       } else {
         console.log('🚪 No user session, clearing user state');
         setUser(null);
+        setError(null);
       }
       setLoading(false);
     });
@@ -77,65 +38,89 @@ export function useAuth() {
     };
   }, []);
 
-  async function checkUser() {
+  async function initializeAuth() {
     try {
       setLoading(true);
-      const { data: { user: authUser }, error: authError } = await getCurrentUser();
+      setError(null);
       
-      if (authError) {
-        console.error('Auth error:', authError);
-        setError('Authentication error');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        setError('Failed to check authentication status');
         return;
       }
       
-      if (authUser) {
-        console.log('Found authenticated user:', authUser.id);
-        // Get user profile from database
-        const { data: profile, error: profileError } = await getUserProfile(authUser.id);
-        
-        if (profile) {
-          console.log('User profile loaded:', profile);
-          setUser({
-            id: profile.id,
-            email: profile.email,
-            name: profile.name,
-            role: profile.role as User['role'],
-            preferences: profile.preferences,
-          });
-        } else if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Error fetching user profile:', profileError);
-          setError('Failed to load user profile');
-        } else if (profileError?.code === 'PGRST116') {
-          // Profile doesn't exist, create it
-          console.log('Creating profile for existing user');
-          await createUserProfile(authUser.id, {
-            email: authUser.email!,
-            name: authUser.user_metadata.name || authUser.user_metadata.full_name,
-            role: 'observer',
-            preferences: {},
-          });
-          
-          // Fetch the newly created profile
-          const { data: newProfile } = await getUserProfile(authUser.id);
-          if (newProfile) {
-            setUser({
-              id: newProfile.id,
-              email: newProfile.email,
-              name: newProfile.name,
-              role: newProfile.role as User['role'],
-              preferences: newProfile.preferences,
-            });
-          }
-        }
+      if (session?.user) {
+        console.log('🔍 Found existing session for user:', session.user.email);
+        await handleUserSession(session.user);
       } else {
-        console.log('No authenticated user found');
+        console.log('🔍 No existing session found');
         setUser(null);
       }
     } catch (err) {
-      console.error('Error checking auth state:', err);
-      setError('Failed to check authentication state');
+      console.error('❌ Error initializing auth:', err);
+      setError('Failed to initialize authentication');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleUserSession(authUser: any) {
+    try {
+      console.log('👤 Handling user session for:', authUser.email);
+      
+      // Get or create user profile
+      const { data: profile, error: profileError } = await getUserProfile(authUser.id);
+      
+      if (profileError && profileError.code === 'PGRST116') {
+        // User profile doesn't exist, create it
+        console.log('📝 Creating new user profile for:', authUser.email);
+        const { error: createError } = await createUserProfile(authUser.id, {
+          email: authUser.email!,
+          name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
+          role: 'observer',
+          preferences: {},
+        });
+        
+        if (createError) {
+          console.error('❌ Error creating user profile:', createError);
+          throw createError;
+        }
+        
+        // Fetch the newly created profile
+        const { data: newProfile, error: fetchError } = await getUserProfile(authUser.id);
+        if (fetchError) {
+          console.error('❌ Error fetching new profile:', fetchError);
+          throw fetchError;
+        }
+        
+        if (newProfile) {
+          console.log('✅ New profile created successfully:', newProfile.email);
+          setUser({
+            id: newProfile.id,
+            email: newProfile.email,
+            name: newProfile.name,
+            role: newProfile.role as User['role'],
+            preferences: newProfile.preferences || {},
+          });
+        }
+      } else if (profileError) {
+        console.error('❌ Error fetching user profile:', profileError);
+        throw profileError;
+      } else if (profile) {
+        console.log('✅ Existing profile loaded:', profile.email);
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          role: profile.role as User['role'],
+          preferences: profile.preferences || {},
+        });
+      }
+    } catch (err: any) {
+      console.error('❌ Error handling user session:', err);
+      setError(err.message || 'Failed to load user profile');
     }
   }
 
@@ -144,19 +129,22 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      console.log('Attempting to sign in user:', email);
+      console.log('🔐 Attempting to sign in user:', email);
       const { error: signInError } = await signInWithEmail(email, password);
 
       if (signInError) {
-        console.error('Sign in error:', signInError);
+        console.error('❌ Sign in error:', signInError);
         throw signInError;
       }
       
-      console.log('Sign in successful');
+      console.log('✅ Sign in successful for:', email);
       return true;
     } catch (err: any) {
-      console.error('Sign in failed:', err);
-      setError(err.message || 'Failed to sign in');
+      console.error('❌ Sign in failed:', err);
+      const errorMessage = err.message === 'Invalid login credentials' 
+        ? 'Invalid email or password' 
+        : err.message || 'Failed to sign in';
+      setError(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -168,31 +156,49 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      console.log('Attempting to sign up user:', email);
+      console.log('📝 Attempting to sign up user:', email);
       const { data, error: signUpError } = await signUpWithEmail(email, password);
 
       if (signUpError) {
-        console.error('Sign up error:', signUpError);
+        console.error('❌ Sign up error:', signUpError);
         throw signUpError;
       }
       
-      // If user was created and we have additional info, update metadata
-      if (data.user && name) {
-        console.log('Updating user metadata with name:', name);
+      if (data.user) {
+        console.log('✅ User created successfully:', data.user.email);
+        
+        // Update user metadata with name if provided
+        if (name) {
+          console.log('📝 Updating user metadata with name:', name);
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: { name }
+          });
+          
+          if (updateError) {
+            console.error('⚠️ Error updating user metadata:', updateError);
+            // Don't throw here, as the user was created successfully
+          }
+        }
+        
+        // Create user profile in database
+        console.log('📝 Creating user profile in database');
         const { error: updateError } = await supabase.auth.updateUser({
           data: { name }
         });
         
         if (updateError) {
-          console.error('Error updating user metadata:', updateError);
+          console.error('⚠️ Error updating user metadata:', updateError);
         }
       }
       
-      console.log('Sign up successful');
+      console.log('✅ Sign up process completed');
       return true;
     } catch (err: any) {
-      console.error('Sign up failed:', err);
-      setError(err.message || 'Failed to sign up');
+      console.error('❌ Sign up failed:', err);
+      const errorMessage = err.message === 'User already registered' 
+        ? 'An account with this email already exists' 
+        : err.message || 'Failed to create account';
+      setError(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -204,18 +210,18 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      console.log('Attempting social sign in with:', provider);
+      console.log('🔐 Attempting social sign in with:', provider);
       const { error: socialError } = await signInWithSocial(provider);
 
       if (socialError) {
-        console.error('Social sign in error:', socialError);
+        console.error('❌ Social sign in error:', socialError);
         throw socialError;
       }
       
-      console.log('Social sign in successful');
+      console.log('✅ Social sign in successful');
       return true;
     } catch (err: any) {
-      console.error('Social sign in failed:', err);
+      console.error('❌ Social sign in failed:', err);
       setError(err.message || `Failed to sign in with ${provider}`);
       return false;
     } finally {
@@ -228,18 +234,18 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      console.log('Attempting to sign out');
+      console.log('🚪 Attempting to sign out');
       const { error: signOutError } = await supabaseSignOut();
       
       if (signOutError) {
-        console.error('Sign out error:', signOutError);
+        console.error('❌ Sign out error:', signOutError);
         throw signOutError;
       }
       
       setUser(null);
-      console.log('Sign out successful');
+      console.log('✅ Sign out successful');
     } catch (err: any) {
-      console.error('Sign out failed:', err);
+      console.error('❌ Sign out failed:', err);
       setError(err.message || 'Failed to sign out');
     } finally {
       setLoading(false);
@@ -253,19 +259,19 @@ export function useAuth() {
       
       if (!user) throw new Error('No user logged in');
 
-      console.log('Updating user role to:', role);
+      console.log('👤 Updating user role to:', role);
       const { error: updateError } = await updateUserProfile(user.id, { role });
 
       if (updateError) {
-        console.error('Role update error:', updateError);
+        console.error('❌ Role update error:', updateError);
         throw updateError;
       }
       
       setUser({ ...user, role });
-      console.log('Role updated successfully');
+      console.log('✅ Role updated successfully');
       return true;
     } catch (err: any) {
-      console.error('Role update failed:', err);
+      console.error('❌ Role update failed:', err);
       setError(err.message || 'Failed to update role');
       return false;
     } finally {
@@ -285,13 +291,13 @@ export function useAuth() {
         ...preferences
       };
 
-      console.log('Updating user preferences:', updatedPreferences);
+      console.log('⚙️ Updating user preferences:', updatedPreferences);
       const { error: updateError } = await updateUserProfile(user.id, { 
         preferences: updatedPreferences 
       });
 
       if (updateError) {
-        console.error('Preferences update error:', updateError);
+        console.error('❌ Preferences update error:', updateError);
         throw updateError;
       }
       
@@ -299,10 +305,10 @@ export function useAuth() {
         ...user,
         preferences: updatedPreferences
       });
-      console.log('Preferences updated successfully');
+      console.log('✅ Preferences updated successfully');
       return true;
     } catch (err: any) {
-      console.error('Preferences update failed:', err);
+      console.error('❌ Preferences update failed:', err);
       setError(err.message || 'Failed to update preferences');
       return false;
     } finally {

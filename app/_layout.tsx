@@ -16,15 +16,20 @@ export default function RootLayout() {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        console.log('🔌 Testing Supabase connection...');
-        const { data, error } = await supabase.from('users').select('count').limit(1);
+        console.log('🔌 Testing Supabase database connection...');
+        const { data, error } = await supabase
+          .from('users')
+          .select('count')
+          .limit(1);
+          
         if (error) {
-          console.error('❌ Supabase connection error:', error.message);
+          console.error('❌ Supabase database connection failed:', error.message);
+          console.error('Full error:', error);
         } else {
-          console.log('✅ Supabase connected successfully');
+          console.log('✅ Supabase database connected successfully');
         }
       } catch (err) {
-        console.error('❌ Failed to connect to Supabase:', err);
+        console.error('❌ Failed to test Supabase connection:', err);
       }
     };
     
