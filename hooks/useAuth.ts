@@ -70,13 +70,13 @@ export function useAuth() {
     try {
       console.log('👤 Handling user session for:', authUser.email);
       
-      // Get or create user profile
-      const { data: profile, error: profileError } = await getUserProfile(authUser.id);
+      // Try to get existing user profile
+      let { data: profile, error: profileError } = await getUserProfile(authUser.id);
       
+      // If profile doesn't exist, create it (fallback in case trigger didn't work)
       if (profileError && profileError.code === 'PGRST116') {
-        // User profile doesn't exist, create it
-        console.log('📝 Creating new user profile for:', authUser.email);
-        const { error: createError } = await createUserProfile(authUser.id, {
+        console.log('📝 Profile not found, creating for:', authUser.email);
+        const { data: newProfile, error: createError } = await createUserProfile(authUser.id, {
           email: authUser.email!,
           name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
           role: 'observer',
@@ -88,28 +88,14 @@ export function useAuth() {
           throw createError;
         }
         
-        // Fetch the newly created profile
-        const { data: newProfile, error: fetchError } = await getUserProfile(authUser.id);
-        if (fetchError) {
-          console.error('❌ Error fetching new profile:', fetchError);
-          throw fetchError;
-        }
-        
-        if (newProfile) {
-          console.log('✅ New profile created successfully:', newProfile.email);
-          setUser({
-            id: newProfile.id,
-            email: newProfile.email,
-            name: newProfile.name,
-            role: newProfile.role as User['role'],
-            preferences: newProfile.preferences || {},
-          });
-        }
+        profile = newProfile;
       } else if (profileError) {
         console.error('❌ Error fetching user profile:', profileError);
         throw profileError;
-      } else if (profile) {
-        console.log('✅ Existing profile loaded:', profile.email);
+      }
+      
+      if (profile) {
+        console.log('✅ Profile loaded successfully:', profile.email);
         setUser({
           id: profile.id,
           email: profile.email,

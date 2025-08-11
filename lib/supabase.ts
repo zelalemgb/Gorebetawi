@@ -73,12 +73,14 @@ export async function createUserProfile(userId: string, data: {
   
   const { data: profile, error } = await supabase
     .from('users')
-    .insert({
+    .upsert({
       id: userId,
       email: data.email,
-      name: data.name,
-      role: data.role,
+      name: data.name || null,
+      role: data.role || 'observer',
       preferences: data.preferences || {},
+    }, {
+      onConflict: 'id'
     })
     .select()
     .single();
