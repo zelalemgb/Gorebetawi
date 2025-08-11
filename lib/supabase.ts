@@ -8,10 +8,19 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
-    'Supabase credentials are missing. Copy `.env.example` to `.env`, add your credentials and restart the development server.'
+    'Missing Supabase environment variables:',
+    { 
+      url: supabaseUrl ? 'Found' : 'Missing', 
+      key: supabaseAnonKey ? 'Found' : 'Missing' 
+    }
   );
   throw new Error('Missing Supabase environment variables');
 }
+
+console.log('Connecting to Supabase:', {
+  url: supabaseUrl,
+  keyLength: supabaseAnonKey?.length
+});
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 

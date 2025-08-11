@@ -22,7 +22,7 @@ export function useAuth() {
     
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.id);
+      console.log('🔐 Auth state change:', event, session?.user?.id);
       
       if (session?.user) {
         try {
@@ -31,7 +31,7 @@ export function useAuth() {
           
           if (profileError && profileError.code === 'PGRST116') {
             // User profile doesn't exist, create it
-            console.log('Creating new user profile for:', session.user.email);
+            console.log('📝 Creating new user profile for:', session.user.email);
             await createUserProfile(session.user.id, {
               email: session.user.email!,
               name: session.user.user_metadata.name || session.user.user_metadata.full_name,
@@ -42,7 +42,7 @@ export function useAuth() {
             // Fetch the newly created profile
             const { data: newProfile } = await getUserProfile(session.user.id);
             if (newProfile) {
-              console.log('New profile created:', newProfile);
+              console.log('✅ New profile created:', newProfile.email);
               setUser({
                 id: newProfile.id,
                 email: newProfile.email,
@@ -52,7 +52,7 @@ export function useAuth() {
               });
             }
           } else if (profile) {
-            console.log('Existing profile found:', profile);
+            console.log('👤 Existing profile found:', profile.email);
             setUser({
               id: profile.id,
               email: profile.email,
@@ -62,11 +62,11 @@ export function useAuth() {
             });
           }
         } catch (err) {
-          console.error('Error handling auth state change:', err);
+          console.error('❌ Error handling auth state change:', err);
           setError('Failed to load user profile');
         }
       } else {
-        console.log('No user session, clearing user state');
+        console.log('🚪 No user session, clearing user state');
         setUser(null);
       }
       setLoading(false);
