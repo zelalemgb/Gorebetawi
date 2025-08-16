@@ -568,8 +568,17 @@ export function useReports() {
   // Confirm a report
   const confirmReport = useCallback(async (reportId: string) => {
     try {
+      // Update confirmations in database
+      const { error: updateError } = await updateReportConfirmations(reportId);
+      
+      if (updateError) {
+        console.error('❌ Error updating confirmations in database:', updateError);
+        throw updateError;
+      }
+
       if (!mounted.current) return false;
 
+      // Update local state
       setReports(prev => 
         prev.map(report => 
           report.id === reportId 
@@ -582,6 +591,7 @@ export function useReports() {
         )
       );
       
+      console.log('✅ Report confirmation updated successfully');
       return true;
     } catch (err: any) {
       if (mounted.current) {

@@ -68,4 +68,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 0,
   },
+  buttonDisabled: {
+    backgroundColor: LightTheme.neutralDark,
+  },
+  tooltip: {
+    position: 'absolute',
+    bottom: 70,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minWidth: 120,
+  },
+  tooltipText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    color: LightTheme.white,
+    textAlign: 'center',
+  },
 });
