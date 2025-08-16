@@ -153,23 +153,31 @@ export default function LoginScreen() {
               <TouchableOpacity 
                 style={[styles.socialButton, styles.googleButton]}
                 onPress={() => handleSocialLogin('google')}
-                disabled={loading}
+                disabled={loading || socialLoading !== null}
               >
-                <View style={styles.socialButtonContent}>
-                  <Text style={styles.socialButtonIcon}>🔍</Text>
-                  <Text style={styles.socialButtonText}>Google</Text>
-                </View>
+                {socialLoading === 'google' ? (
+                  <ActivityIndicator size="small" color="#db4437" />
+                ) : (
+                  <View style={styles.socialButtonContent}>
+                    <Text style={styles.socialButtonIcon}>🔍</Text>
+                    <Text style={styles.socialButtonText}>Google</Text>
+                  </View>
+                )}
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={[styles.socialButton, styles.appleButton]}
                 onPress={() => handleSocialLogin('apple')}
-                disabled={loading}
+                disabled={loading || socialLoading !== null}
               >
-                <View style={styles.socialButtonContent}>
-                  <Text style={styles.socialButtonIcon}>🍎</Text>
-                  <Text style={styles.socialButtonText}>Apple</Text>
-                </View>
+                {socialLoading === 'apple' ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <View style={styles.socialButtonContent}>
+                    <Text style={styles.socialButtonIcon}>🍎</Text>
+                    <Text style={styles.socialButtonText}>Apple</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             </View>
           </View>

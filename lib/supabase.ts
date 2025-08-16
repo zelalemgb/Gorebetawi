@@ -48,14 +48,18 @@ export async function signInWithSocial(provider: 'google' | 'apple') {
   try {
     console.log(`🔐 Attempting social sign in with ${provider}`);
     
+    // Get the current origin for redirect URL
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
+        skipBrowserRedirect: false,
       },
     });
 
@@ -64,7 +68,7 @@ export async function signInWithSocial(provider: 'google' | 'apple') {
       throw error;
     }
 
-    console.log(`✅ ${provider} OAuth initiated successfully`);
+    console.log(`✅ ${provider} OAuth initiated successfully`, data);
     return { data, error: null };
   } catch (err: any) {
     console.error(`❌ ${provider} OAuth failed:`, err);
