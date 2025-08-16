@@ -56,12 +56,19 @@ export default function MapScreen() {
   // Update map center when user location is available for the first time
   useEffect(() => {
     if (location && !hasUserLocation && mountedRef.current) {
+      console.log('🗺️ Setting map center to user location');
       setCenter([location.coords.latitude, location.coords.longitude]);
       setZoom(16); // Closer zoom for user area focus
       addViewPoint(location.coords.latitude, location.coords.longitude);
       setHasUserLocation(true);
+    } else if (locationError && !hasUserLocation && mountedRef.current) {
+      // If location fails, use default location (Addis Ababa, Bole)
+      console.log('🗺️ Using default location due to location error');
+      setCenter([8.9806, 38.7578]);
+      setZoom(15);
+      setHasUserLocation(true);
     }
-  }, [location, hasUserLocation, addViewPoint]);
+  }, [location, locationError, hasUserLocation, addViewPoint]);
 
   // Calculate filtered reports based on selected categories
   const filteredReports = React.useMemo(() => {
