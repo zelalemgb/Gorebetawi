@@ -205,10 +205,12 @@ export default function MapScreen() {
         onMarkerHover={handleMarkerHover}
         onMarkerHoverOut={handleMarkerHoverOut}
         highlightedReports={highlightedReports}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: headerAnimation } } }],
-          { useNativeDriver: false }
-        )}
+        {...(Platform.OS !== 'web' && {
+          onScroll: Animated.event(
+            [{ nativeEvent: { contentOffset: { y: headerAnimation } } }],
+            { useNativeDriver: false }
+          )
+        })}
         filteredCategories={selectedCategories}
       />
       
