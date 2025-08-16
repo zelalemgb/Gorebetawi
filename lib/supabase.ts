@@ -176,6 +176,9 @@ export async function createReport(data: {
   image_url?: string;
   user_id?: string;
   anonymous?: boolean;
+  is_sponsored?: boolean;
+  sponsored_by?: string;
+  expires_at?: string;
   metadata?: any;
 }) {
   return supabase

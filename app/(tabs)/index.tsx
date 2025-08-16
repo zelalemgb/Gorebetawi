@@ -43,7 +43,7 @@ export default function MapScreen() {
   const headerAnimation = useRef(new Animated.Value(0)).current;
   
   // Initial center - will be updated when location is available
-  const [center, setCenter] = useState<[number, number]>([8.9806, 38.7578]); // Fallback to Bole, Addis Ababa
+  const [center, setCenter] = useState<[number, number]>([9.0320, 38.7469]); // Fallback to Addis Ababa center
   const [zoom, setZoom] = useState(15);
   const [hasUserLocation, setHasUserLocation] = useState(false);
   const mountedRef = useRef(true);
@@ -66,7 +66,7 @@ export default function MapScreen() {
     } else if (locationError && !hasUserLocation && mountedRef.current) {
       // If location fails, use default location (Addis Ababa, Bole)
       console.log('🗺️ Using default location due to location error');
-      setCenter([8.9806, 38.7578]);
+      setCenter([9.0320, 38.7469]);
       setZoom(15);
       setHasUserLocation(true);
     }

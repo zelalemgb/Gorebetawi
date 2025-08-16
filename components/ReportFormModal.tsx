@@ -205,9 +205,17 @@ export default function ReportFormModal({
   const [selectedStation, setSelectedStation] = useState<FuelStation | null>(null);
   const [customDescription, setCustomDescription] = useState('');
 
-  const nearbyStations = currentLocation 
-    ? getNearbyFuelStations(currentLocation.latitude, currentLocation.longitude)
-    : [];
+  const [nearbyStations, setNearbyStations] = useState<FuelStation[]>([]);
+
+  // Fetch nearby fuel stations when location changes
+  useEffect(() => {
+    if (currentLocation && category === 'fuel') {
+      getNearbyFuelStations(currentLocation.latitude, currentLocation.longitude)
+        .then(stations => setNearbyStations(stations))
+        .catch(error => console.error('Error fetching fuel stations:', error));
+    }
+  }, [currentLocation, category, getNearbyFuelStations]);
+
 
   useEffect(() => {
     if (location) {
