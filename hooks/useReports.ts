@@ -470,7 +470,7 @@ export function useReports() {
       setError(null);
 
       // Create report in Supabase database
-      const { data: newReport, error: createError } = await createReport({
+      const { data: supabaseReportData, error: createError } = await createReport({
         title: report.title,
         description: report.description,
         category: report.category,
@@ -487,35 +487,35 @@ export function useReports() {
         throw createError;
       }
 
-      console.log('✅ Report created successfully in database:', newReport.id);
+      console.log('✅ Report created successfully in database:', supabaseReportData.id);
 
       // Transform database format to app format
       const newReport: Report = {
-        id: newReport.id,
-        title: newReport.title,
-        description: newReport.description,
-        category: newReport.category as ReportCategory,
-        status: newReport.status as Report['status'],
+        id: supabaseReportData.id,
+        title: supabaseReportData.title,
+        description: supabaseReportData.description,
+        category: supabaseReportData.category as ReportCategory,
+        status: supabaseReportData.status as Report['status'],
         location: {
-          latitude: newReport.location[0],
-          longitude: newReport.location[1],
+          latitude: supabaseReportData.location[0],
+          longitude: supabaseReportData.location[1],
         },
-        address: newReport.address,
-        timestamp: new Date(newReport.created_at).getTime(),
-        imageUrl: newReport.image_url,
-        userId: newReport.user_id,
-        anonymous: newReport.anonymous,
+        address: supabaseReportData.address,
+        timestamp: new Date(supabaseReportData.created_at).getTime(),
+        imageUrl: supabaseReportData.image_url,
+        userId: supabaseReportData.user_id,
+        anonymous: supabaseReportData.anonymous,
         confirmations: 0,
-        isSponsored: newReport.is_sponsored,
-        sponsoredBy: newReport.sponsored_by,
-        expiresAt: newReport.expires_at ? new Date(newReport.expires_at).getTime() : undefined,
-        metadata: newReport.metadata,
+        isSponsored: supabaseReportData.is_sponsored,
+        sponsoredBy: supabaseReportData.sponsored_by,
+        expiresAt: supabaseReportData.expires_at ? new Date(supabaseReportData.expires_at).getTime() : undefined,
+        metadata: supabaseReportData.metadata,
       };
 
       if (!mounted.current) return null;
 
-      setReports(prev => [transformedReport, ...prev]);
-      return transformedReport.id;
+      setReports(prev => [newReport, ...prev]);
+      return newReport.id;
     } catch (err: any) {
       if (mounted.current) {
         setError(err.message || 'Failed to submit report');
