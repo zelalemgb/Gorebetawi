@@ -25,6 +25,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   
   const validateForm = () => {
     let isValid = true;
@@ -69,7 +70,9 @@ export default function LoginScreen() {
 
   const handleSocialLogin = async (provider: 'google' | 'apple') => {
     console.log(`🔐 Starting ${provider} login process`);
+    setSocialLoading(provider);
     const success = await signInWithSocial(provider);
+    setSocialLoading(null);
     if (success) {
       console.log(`✅ ${provider} login successful, navigating to main app`);
       // Note: For OAuth, the redirect will be handled by the callback
