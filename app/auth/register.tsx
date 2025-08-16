@@ -35,6 +35,8 @@ export default function RegisterScreen() {
   const validateForm = () => {
     let isValid = true;
     
+    console.log('🔍 Validating form with data:', { name, email, phone, password, confirmPassword });
+    
     // Validate name
     if (!name.trim()) {
       setNameError('Name is required');
@@ -85,6 +87,8 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
+    console.log('🚀 Register button clicked');
+    
     if (validateForm()) {
       console.log('📝 Starting registration process for:', email);
       const success = await signUp(email, password, name.trim());
@@ -94,6 +98,8 @@ export default function RegisterScreen() {
       } else {
         console.log('❌ Registration failed');
       }
+    } else {
+      console.log('❌ Form validation failed');
     }
   };
 

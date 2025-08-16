@@ -143,10 +143,13 @@ export function useAuth() {
       setError(null);
       
       console.log('📝 Attempting to sign up user:', email);
+      console.log('📝 Sign up data:', { email, passwordLength: password.length, name });
+      
       const { data, error: signUpError } = await signUpWithEmail(email, password);
 
       if (signUpError) {
         console.error('❌ Sign up error:', signUpError);
+        setError(signUpError.message || 'Failed to create account');
         throw signUpError;
       }
       
@@ -164,16 +167,6 @@ export function useAuth() {
             console.error('⚠️ Error updating user metadata:', updateError);
             // Don't throw here, as the user was created successfully
           }
-        }
-        
-        // Create user profile in database
-        console.log('📝 Creating user profile in database');
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: { name }
-        });
-        
-        if (updateError) {
-          console.error('⚠️ Error updating user metadata:', updateError);
         }
       }
       
