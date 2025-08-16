@@ -5,6 +5,7 @@ import { Search, Menu, MapPin, TriangleAlert as AlertTriangle } from 'lucide-rea
 import { LightTheme } from '@/constants/Colors';
 import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
+import { useAuth } from '@/hooks/useAuth';
 import { useUserTrail } from '@/hooks/useUserTrail';
 import { useMapIdle } from '@/hooks/useMapIdle';
 import { Report, ReportCategory } from '@/types';
@@ -21,6 +22,7 @@ export default function MapScreen() {
   const router = useRouter();
   const { reports, loading, error, confirmReport, filterReportsByCategory } = useReports();
   const { location, loading: locationLoading, errorMsg: locationError } = useLocation();
+  const { user } = useAuth();
   const { 
     trailPoints, 
     addViewPoint, 
@@ -128,6 +130,13 @@ export default function MapScreen() {
   };
 
   const handleAddReport = () => {
+    // Check if user is authenticated before allowing report creation
+    if (!user) {
+      // Redirect to login if not authenticated
+      router.push('/auth/login');
+      return;
+    }
+    
     setReportFormVisible(true);
     if (location) {
       addReportPoint(location.coords.latitude, location.coords.longitude);

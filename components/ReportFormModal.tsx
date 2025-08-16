@@ -19,6 +19,7 @@ import { LightTheme, Colors } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
 import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
+import { useAuth } from '@/hooks/useAuth';
 import { ReportCategory, PriceDetails, FuelStation } from '@/types';
 
 interface ReportFormModalProps {
@@ -186,6 +187,7 @@ export default function ReportFormModal({
 }: ReportFormModalProps) {
   const { addReport, loading, getNearbyFuelStations } = useReports();
   const { getAddressFromCoordinates } = useLocation();
+  const { user } = useAuth();
   
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const [description, setDescription] = useState<string>('');
@@ -222,7 +224,10 @@ export default function ReportFormModal({
   }, [location]);
 
   const handleSubmit = async () => {
-    if (!category || !location) return;
+    if (!category || !location || !user) {
+      console.error('Missing required data for report submission');
+      return;
+    }
     
     try {
       const reportData = {
@@ -233,7 +238,7 @@ export default function ReportFormModal({
         location: location,
         address: address || undefined,
         imageUrl: imageUrl || undefined,
-        userId: 'user123',
+        userId: user.id,
         anonymous,
         metadata: {
           ...metadata,

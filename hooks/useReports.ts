@@ -464,24 +464,58 @@ export function useReports() {
   };
 
   // Add a new report
-  const addReport = useCallback(async (report: Omit<Report, 'id' | 'timestamp' | 'confirmations'>) => {
+  const addReport = useCallback(async (report: Omit<Report, 'id' | 'timestamp' | 'confirmations'> & { userId: string }) => {
     try {
       setLoading(true);
       setError(null);
 
-      // For demo purposes, add to local state
-      // In production, this would create in Supabase
+      // Create report in Supabase database
+      const { data: newReport, error: createError } = await createReport({
+        title: report.title,
+        description: report.description,
+        category: report.category,
+        location: [report.location.latitude, report.location.longitude],
+        address: report.address,
+        image_url: report.imageUrl,
+        user_id: report.userId,
+        anonymous: report.anonymous,
+        metadata: report.metadata,
+      });
+
+      if (createError) {
+        console.error('❌ Error creating report in database:', createError);
+        throw createError;
+      }
+
+      console.log('✅ Report created successfully in database:', newReport.id);
+
+      // Transform database format to app format
       const newReport: Report = {
-        ...report,
-        id: `report_${Date.now()}`,
-        timestamp: Date.now(),
+        id: newReport.id,
+        title: newReport.title,
+        description: newReport.description,
+        category: newReport.category as ReportCategory,
+        status: newReport.status as Report['status'],
+        location: {
+          latitude: newReport.location[0],
+          longitude: newReport.location[1],
+        },
+        address: newReport.address,
+        timestamp: new Date(newReport.created_at).getTime(),
+        imageUrl: newReport.image_url,
+        userId: newReport.user_id,
+        anonymous: newReport.anonymous,
         confirmations: 0,
+        isSponsored: newReport.is_sponsored,
+        sponsoredBy: newReport.sponsored_by,
+        expiresAt: newReport.expires_at ? new Date(newReport.expires_at).getTime() : undefined,
+        metadata: newReport.metadata,
       };
 
       if (!mounted.current) return null;
 
-      setReports(prev => [newReport, ...prev]);
-      return newReport.id;
+      setReports(prev => [transformedReport, ...prev]);
+      return transformedReport.id;
     } catch (err: any) {
       if (mounted.current) {
         setError(err.message || 'Failed to submit report');
