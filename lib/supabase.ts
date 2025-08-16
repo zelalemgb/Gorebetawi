@@ -45,9 +45,31 @@ export async function signUpWithEmail(email: string, password: string) {
 }
 
 export async function signInWithSocial(provider: 'google' | 'apple') {
-  return supabase.auth.signInWithOAuth({
-    provider,
-  });
+  try {
+    console.log(`🔐 Attempting social sign in with ${provider}`);
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) {
+      console.error(`❌ ${provider} OAuth error:`, error);
+      throw error;
+    }
+
+    console.log(`✅ ${provider} OAuth initiated successfully`);
+    return { data, error: null };
+  } catch (err: any) {
+    console.error(`❌ ${provider} OAuth failed:`, err);
+    return { data: null, error: err };
+  }
 }
 
 export async function signOut() {

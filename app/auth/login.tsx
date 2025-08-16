@@ -68,9 +68,14 @@ export default function LoginScreen() {
   };
 
   const handleSocialLogin = async (provider: 'google' | 'apple') => {
+    console.log(`🔐 Starting ${provider} login process`);
     const success = await signInWithSocial(provider);
     if (success) {
-      router.replace('/(tabs)');
+      console.log(`✅ ${provider} login successful, navigating to main app`);
+      // Note: For OAuth, the redirect will be handled by the callback
+      // router.replace('/(tabs)');
+    } else {
+      console.log(`❌ ${provider} login failed`);
     }
   };
 
@@ -146,19 +151,25 @@ export default function LoginScreen() {
             
             <View style={styles.socialButtons}>
               <TouchableOpacity 
-                style={styles.socialButton}
+                style={[styles.socialButton, styles.googleButton]}
                 onPress={() => handleSocialLogin('google')}
                 disabled={loading}
               >
-                <Text style={styles.socialButtonText}>Google</Text>
+                <View style={styles.socialButtonContent}>
+                  <Text style={styles.socialButtonIcon}>🔍</Text>
+                  <Text style={styles.socialButtonText}>Google</Text>
+                </View>
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={styles.socialButton}
+                style={[styles.socialButton, styles.appleButton]}
                 onPress={() => handleSocialLogin('apple')}
                 disabled={loading}
               >
-                <Text style={styles.socialButtonText}>Apple</Text>
+                <View style={styles.socialButtonContent}>
+                  <Text style={styles.socialButtonIcon}>🍎</Text>
+                  <Text style={styles.socialButtonText}>Apple</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -254,17 +265,35 @@ const styles = StyleSheet.create({
   },
   socialButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
   },
   socialButton: {
     flex: 1,
     height: 48,
     borderWidth: 1,
-    borderColor: LightTheme.border,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 8,
+    backgroundColor: LightTheme.white,
+    shadowColor: LightTheme.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleButton: {
+    borderColor: '#db4437',
+  },
+  appleButton: {
+    borderColor: '#000000',
+  },
+  socialButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  socialButtonIcon: {
+    fontSize: 16,
+    marginRight: 8,
   },
   socialButtonText: {
     fontFamily: 'Inter-Medium',

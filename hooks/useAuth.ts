@@ -197,18 +197,30 @@ export function useAuth() {
       setError(null);
       
       console.log('🔐 Attempting social sign in with:', provider);
-      const { error: socialError } = await signInWithSocial(provider);
+      const { data, error: socialError } = await signInWithSocial(provider);
 
       if (socialError) {
         console.error('❌ Social sign in error:', socialError);
         throw socialError;
       }
       
+      // For web, the OAuth flow will redirect to the callback URL
+      // For mobile, we need to handle the response differently
+      if (data?.url) {
+        console.log('🌐 Redirecting to OAuth provider:', data.url);
+        // On web, this will redirect to the OAuth provider
+        window.location.href = data.url;
+        return true;
+      }
+      
       console.log('✅ Social sign in successful');
       return true;
     } catch (err: any) {
       console.error('❌ Social sign in failed:', err);
-      setError(err.message || `Failed to sign in with ${provider}`);
+      const errorMessage = err.message === 'OAuth provider not enabled' 
+        ? `${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not available yet`
+        : err.message || `Failed to sign in with ${provider}`;
+      setError(errorMessage);
       return false;
     } finally {
       setLoading(false);
