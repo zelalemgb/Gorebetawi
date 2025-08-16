@@ -54,8 +54,8 @@ export function useReports() {
         category: dbReport.category as ReportCategory,
         status: dbReport.status as Report['status'],
         location: {
-          latitude: dbReport.location[0],
-          longitude: dbReport.location[1],
+          latitude: dbReport.location[1],
+          longitude: dbReport.location[0],
         },
         address: dbReport.address || undefined,
         timestamp: new Date(dbReport.created_at).getTime(),
@@ -96,7 +96,7 @@ export function useReports() {
         title: report.title,
         description: report.description,
         category: report.category,
-        location: [report.location.latitude, report.location.longitude],
+        location: [report.location.longitude, report.location.latitude],
         address: report.address,
         image_url: report.imageUrl,
         user_id: report.userId,
@@ -119,8 +119,8 @@ export function useReports() {
         category: supabaseReportData.category as ReportCategory,
         status: supabaseReportData.status as Report['status'],
         location: {
-          latitude: supabaseReportData.location[0],
-          longitude: supabaseReportData.location[1],
+          latitude: supabaseReportData.location[1],
+          longitude: supabaseReportData.location[0],
         },
         address: supabaseReportData.address,
         timestamp: new Date(supabaseReportData.created_at).getTime(),
@@ -195,8 +195,8 @@ export function useReports() {
         category: supabaseReportData.category as ReportCategory,
         status: supabaseReportData.status as Report['status'],
         location: {
-          latitude: supabaseReportData.location[0],
-          longitude: supabaseReportData.location[1],
+          latitude: supabaseReportData.location[1],
+          longitude: supabaseReportData.location[0],
         },
         address: supabaseReportData.address,
         timestamp: new Date(supabaseReportData.created_at).getTime(),
@@ -300,8 +300,8 @@ export function useReports() {
           name: business.name,
           address: business.address,
           location: {
-            latitude: business.location[0],
-            longitude: business.location[1],
+            latitude: business.location[1],
+            longitude: business.location[0],
           },
         }))
         .filter(station => {
