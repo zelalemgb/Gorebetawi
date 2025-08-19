@@ -211,8 +211,6 @@ export default function MapScreen() {
             { useNativeDriver: false }
           )
         })}
-          )
-        })}
         filteredCategories={selectedCategories}
       />
       
