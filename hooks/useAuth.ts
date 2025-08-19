@@ -4,7 +4,6 @@ import {
   supabase, 
   signInWithEmail,
   signUpWithEmail,
-  signInWithSocial,
   signOut as supabaseSignOut,
   createUserProfile,
   updateUserProfile,

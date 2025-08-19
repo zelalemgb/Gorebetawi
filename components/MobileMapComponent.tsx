@@ -11,7 +11,7 @@ interface MapComponentProps {
   reports: Report[];
   selectedReport: Report | null;
   highlightedReports?: Report[];
-  filteredCategories?: ReportCategory[];
+  filteredCategories?: string[];
   onMarkerClick: (report: Report) => void;
   onMarkerHover?: (report: Report) => void;
   onMarkerHoverOut?: () => void;
@@ -52,7 +52,7 @@ export default function MobileMapComponent({
 
   // Filter reports based on selected categories
   const visibleReports = filteredCategories && filteredCategories.length > 0
-    ? reports.filter(r => filteredCategories.includes(r.category))
+    ? reports.filter(r => filteredCategories.includes(r.category as string))
     : reports;
 
   return (

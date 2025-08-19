@@ -12,7 +12,7 @@ interface MapComponentProps {
   reports: Report[];
   selectedReport: Report | null;
   highlightedReports?: Report[];
-  filteredCategories?: ReportCategory[];
+  filteredCategories?: string[];
   onMarkerClick: (report: Report) => void;
   onMarkerHover?: (report: Report) => void;
   onMarkerHoverOut?: () => void;
@@ -257,7 +257,7 @@ export default function WebMapComponentClient({
           const isVerified = report.status === 'confirmed';
           
           // Hide filtered out reports completely
-          const isFiltered = filteredCategories && filteredCategories.length > 0 && !filteredCategories.includes(report.category as any);
+          const isFiltered = filteredCategories && filteredCategories.length > 0 && !filteredCategories.includes(report.category);
           if (isFiltered) return null;
           
           const opacity = isExpired ? 0.5 : (isHighlighted ? 1 : 1);

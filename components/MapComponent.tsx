@@ -9,7 +9,7 @@ interface MapComponentProps {
   reports: Report[];
   selectedReport: Report | null;
   highlightedReports?: Report[];
-  filteredCategories?: ReportCategory[];
+  filteredCategories?: string[];
   onMarkerClick: (report: Report) => void;
   onMarkerHover?: (report: Report) => void;
   onMarkerHoverOut?: () => void;

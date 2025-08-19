@@ -32,7 +32,10 @@ export async function signInWithEmail(email: string, password: string) {
 export async function signUpWithEmail(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({ 
     email,
-    password
+    password,
+    options: {
+      emailRedirectTo: undefined
+    }
   });
   
   if (error) {
