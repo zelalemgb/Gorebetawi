@@ -38,12 +38,6 @@ CREATE TABLE IF NOT EXISTS public.users (
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for users table
-CREATE POLICY "Users can read own data"
-  ON public.users
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = id);
-
 CREATE POLICY "Users can update own data"
   ON public.users
   FOR UPDATE

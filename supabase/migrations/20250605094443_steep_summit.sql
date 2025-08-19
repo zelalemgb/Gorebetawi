@@ -109,19 +109,6 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE businesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 
--- Create policies for users table
-CREATE POLICY "Users can read own data"
-  ON users
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own data"
-  ON users
-  FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = id);
-
 -- Create policies for businesses table
 CREATE POLICY "Anyone can read verified businesses"
   ON businesses
