@@ -1,55 +1,35 @@
 /*
-  # Create Users Table and Authentication Setup
+  # Link Users to Auth and Set Up Triggers
 
-  1. New Tables
-    - `users`
-      - `id` (uuid, primary key, references auth.users)
-      - `email` (text, unique)
-      - `name` (text)
-      - `role` (text with enum constraint)
-      - `preferences` (jsonb)
-      - `created_at` (timestamp)
-      - `updated_at` (timestamp)
+  1. Table Changes
+    - add foreign key to `auth.users`
+    - set default role to 'observer'
 
   2. Security
-    - Enable RLS on `users` table
-    - Add policies for authenticated users to read/update their own data
-    - Add policy for user creation
+    - add policy for user creation
 
   3. Functions
-    - Add trigger to automatically create user profile on auth signup
+    - add trigger to automatically create user profile on auth signup
 */
 
 -- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create users table
-CREATE TABLE IF NOT EXISTS public.users (
-  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email text UNIQUE NOT NULL,
-  name text,
-  role text CHECK (role IN ('observer', 'reporter', 'validator', 'partner', 'business')) DEFAULT 'observer',
-  preferences jsonb DEFAULT '{}',
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+-- Update users table for auth integration
+ALTER TABLE public.users
+  ALTER COLUMN id DROP DEFAULT;
 
--- Enable Row Level Security
+ALTER TABLE public.users
+  ADD CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.users
+  ALTER COLUMN role SET DEFAULT 'observer';
+
+-- Ensure Row Level Security is enabled
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
--- Create policies for users table
-CREATE POLICY "Users can read own data"
-  ON public.users
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own data"
-  ON public.users
-  FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = id);
-
+-- Add insert policy for users table
+DROP POLICY IF EXISTS "Users can insert own data" ON public.users;
 CREATE POLICY "Users can insert own data"
   ON public.users
   FOR INSERT
@@ -86,6 +66,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create trigger for updated_at
+DROP TRIGGER IF EXISTS handle_users_updated_at ON public.users;
 CREATE TRIGGER handle_users_updated_at
   BEFORE UPDATE ON public.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

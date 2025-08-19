@@ -3,10 +3,10 @@
 
   1. New Tables
     - users
-      - id (uuid, primary key)
+      - id (uuid, primary key references auth.users)
       - email (text, unique)
       - name (text)
-      - role (text)
+      - role (text, default 'observer')
       - preferences (jsonb)
       - created_at (timestamp)
       - updated_at (timestamp)
@@ -55,11 +55,11 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create users table
-CREATE TABLE IF NOT EXISTS users (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+CREATE TABLE IF NOT EXISTS public.users (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text UNIQUE NOT NULL,
   name text,
-  role text CHECK (role IN ('observer', 'reporter', 'validator', 'partner', 'business')),
+  role text DEFAULT 'observer' CHECK (role IN ('observer', 'reporter', 'validator', 'partner', 'business')),
   preferences jsonb DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
