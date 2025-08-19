@@ -19,13 +19,12 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn, signInWithSocial, loading, error } = useAuth();
+  const { signIn, loading, error } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   
   const validateForm = () => {
     let isValid = true;
@@ -65,20 +64,6 @@ export default function LoginScreen() {
       } else {
         console.log('❌ Login failed');
       }
-    }
-  };
-
-  const handleSocialLogin = async (provider: 'google' | 'apple') => {
-    console.log(`🔐 Starting ${provider} login process`);
-    setSocialLoading(provider);
-    const success = await signInWithSocial(provider);
-    setSocialLoading(null);
-    if (success) {
-      console.log(`✅ ${provider} login successful, navigating to main app`);
-      // Note: For OAuth, the redirect will be handled by the callback
-      // router.replace('/(tabs)');
-    } else {
-      console.log(`❌ ${provider} login failed`);
     }
   };
 
@@ -145,44 +130,6 @@ export default function LoginScreen() {
               disabled={loading}
               style={styles.button}
             />
-            
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.divider} />
-            </View>
-            
-            <View style={styles.socialButtons}>
-              <TouchableOpacity 
-                style={[styles.socialButton, styles.googleButton]}
-                onPress={() => handleSocialLogin('google')}
-                disabled={loading || socialLoading !== null}
-              >
-                {socialLoading === 'google' ? (
-                  <ActivityIndicator size="small" color="#db4437" />
-                ) : (
-                  <View style={styles.socialButtonContent}>
-                    <Text style={styles.socialButtonIcon}>🔍</Text>
-                    <Text style={styles.socialButtonText}>Google</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.socialButton, styles.appleButton]}
-                onPress={() => handleSocialLogin('apple')}
-                disabled={loading || socialLoading !== null}
-              >
-                {socialLoading === 'apple' ? (
-                  <ActivityIndicator size="small" color="#000000" />
-                ) : (
-                  <View style={styles.socialButtonContent}>
-                    <Text style={styles.socialButtonIcon}>🍎</Text>
-                    <Text style={styles.socialButtonText}>Apple</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
           </View>
           
           <View style={styles.footer}>
@@ -257,59 +204,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 8,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: LightTheme.border,
-  },
-  dividerText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: LightTheme.secondaryText,
-    paddingHorizontal: 16,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  socialButton: {
-    flex: 1,
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: LightTheme.white,
-    shadowColor: LightTheme.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  googleButton: {
-    borderColor: '#db4437',
-  },
-  appleButton: {
-    borderColor: '#000000',
-  },
-  socialButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  socialButtonIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  socialButtonText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: LightTheme.text,
   },
   footer: {
     flexDirection: 'row',

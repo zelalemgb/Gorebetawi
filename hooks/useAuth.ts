@@ -39,7 +39,6 @@ export function useAuth() {
   }, []);
 
   async function initializeAuth() {
-    try {
       setLoading(true);
       setError(null);
       

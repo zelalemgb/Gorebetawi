@@ -44,38 +44,6 @@ export async function signUpWithEmail(email: string, password: string) {
   return { data, error: null };
 }
 
-export async function signInWithSocial(provider: 'google' | 'apple') {
-  try {
-    console.log(`🔐 Attempting social sign in with ${provider}`);
-    
-    // Get the current origin for redirect URL
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-        skipBrowserRedirect: false,
-      },
-    });
-
-    if (error) {
-      console.error(`❌ ${provider} OAuth error:`, error);
-      throw error;
-    }
-
-    console.log(`✅ ${provider} OAuth initiated successfully`, data);
-    return { data, error: null };
-  } catch (err: any) {
-    console.error(`❌ ${provider} OAuth failed:`, err);
-    return { data: null, error: err };
-  }
-}
-
 export async function signOut() {
   return supabase.auth.signOut();
 }
