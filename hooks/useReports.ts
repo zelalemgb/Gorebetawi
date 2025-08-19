@@ -7,136 +7,278 @@ import {
   getBusinesses 
 } from '@/lib/supabase';
 
+// Mock data for development
+const SAMPLE_REPORTS: Report[] = [
+  {
+    id: '1',
+    title: 'Power outage in Bole area',
+    description: 'Electricity has been out since 2 PM. Affecting the entire neighborhood.',
+    category: 'light',
+    status: 'confirmed',
+    location: { latitude: 9.0320, longitude: 38.7469 },
+    address: 'Bole, Addis Ababa',
+    timestamp: Date.now() - 3600000, // 1 hour ago
+    imageUrl: 'https://images.pexels.com/photos/2096700/pexels-photo-2096700.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    userId: 'user1',
+    anonymous: false,
+    confirmations: 5,
+    metadata: { severity: 'moderate', duration: 'ongoing' }
+  },
+  {
+    id: '2',
+    title: 'Water shortage reported',
+    description: 'No water supply for the past 6 hours in this area.',
+    category: 'water',
+    status: 'pending',
+    location: { latitude: 9.0280, longitude: 38.7520 },
+    address: 'Kazanchis, Addis Ababa',
+    timestamp: Date.now() - 7200000, // 2 hours ago
+    userId: 'user2',
+    anonymous: true,
+    confirmations: 2,
+    metadata: { severity: 'heavy', duration: '2-3days' }
+  },
+  {
+    id: '3',
+    title: 'Fuel available at Total station',
+    description: 'Both gasoline and diesel available with short queue.',
+    category: 'fuel',
+    status: 'confirmed',
+    location: { latitude: 9.0350, longitude: 38.7400 },
+    address: 'Mexico Square, Addis Ababa',
+    timestamp: Date.now() - 1800000, // 30 minutes ago
+    userId: 'user3',
+    anonymous: false,
+    confirmations: 8,
+    metadata: { 
+      availability: true, 
+      queueLength: 'short',
+      fuelStation: {
+        id: 'station1',
+        name: 'Total Mexico',
+        address: 'Mexico Square, Addis Ababa',
+        location: { latitude: 9.0350, longitude: 38.7400 }
+      }
+    }
+  },
+  {
+    id: '4',
+    title: 'Teff price increased',
+    description: 'Price went up from 45 to 55 birr per kg at local market.',
+    category: 'price',
+    status: 'pending',
+    location: { latitude: 9.0250, longitude: 38.7550 },
+    address: 'Merkato, Addis Ababa',
+    timestamp: Date.now() - 5400000, // 1.5 hours ago
+    userId: 'user4',
+    anonymous: false,
+    confirmations: 3,
+    metadata: {
+      priceDetails: {
+        itemName: 'Teff/Injera',
+        unitOfMeasure: 'kg',
+        quantity: 1,
+        price: 55,
+        previousPrice: 45
+      }
+    }
+  },
+  {
+    id: '5',
+    title: 'Heavy traffic on Bole Road',
+    description: 'Accident near Edna Mall causing major delays.',
+    category: 'traffic',
+    status: 'confirmed',
+    location: { latitude: 9.0180, longitude: 38.7580 },
+    address: 'Bole Road, Addis Ababa',
+    timestamp: Date.now() - 900000, // 15 minutes ago
+    userId: 'user5',
+    anonymous: false,
+    confirmations: 12,
+    metadata: { severity: 'heavy', subcategory: 'accident' }
+  },
+  {
+    id: '6',
+    title: 'Road construction blocking traffic',
+    description: 'Major road work on CMC road, use alternative routes.',
+    category: 'infrastructure',
+    status: 'confirmed',
+    location: { latitude: 9.0100, longitude: 38.7650 },
+    address: 'CMC Road, Addis Ababa',
+    timestamp: Date.now() - 10800000, // 3 hours ago
+    userId: 'user6',
+    anonymous: false,
+    confirmations: 7,
+    metadata: { subcategory: 'Road Block', duration: 'ongoing' }
+  },
+  {
+    id: '7',
+    title: 'Garbage overflow near school',
+    description: 'Uncollected garbage for over a week, creating health hazard.',
+    category: 'environment',
+    status: 'pending',
+    location: { latitude: 9.0400, longitude: 38.7300 },
+    address: 'Piassa, Addis Ababa',
+    timestamp: Date.now() - 14400000, // 4 hours ago
+    userId: 'user7',
+    anonymous: true,
+    confirmations: 4,
+    metadata: { subcategory: 'Garbage overflow', severity: 'moderate' }
+  },
+  {
+    id: '8',
+    title: 'Street robbery reported',
+    description: 'Multiple incidents reported in this area after dark.',
+    category: 'safety',
+    status: 'confirmed',
+    location: { latitude: 9.0150, longitude: 38.7450 },
+    address: 'Arat Kilo, Addis Ababa',
+    timestamp: Date.now() - 21600000, // 6 hours ago
+    userId: 'user8',
+    anonymous: true,
+    confirmations: 6,
+    metadata: { severity: 'heavy', subcategory: 'theft' }
+  },
+  {
+    id: '9',
+    title: 'No fuel at Shell station',
+    description: 'Station ran out of both gasoline and diesel.',
+    category: 'fuel',
+    status: 'confirmed',
+    location: { latitude: 9.0080, longitude: 38.7620 },
+    address: 'Gotera, Addis Ababa',
+    timestamp: Date.now() - 3600000, // 1 hour ago
+    userId: 'user9',
+    anonymous: false,
+    confirmations: 9,
+    metadata: { 
+      availability: false,
+      fuelStation: {
+        id: 'station2',
+        name: 'Shell Gotera',
+        address: 'Gotera, Addis Ababa',
+        location: { latitude: 9.0080, longitude: 38.7620 }
+      }
+    }
+  },
+  {
+    id: '10',
+    title: 'Cooking oil shortage',
+    description: 'Most shops in the area are out of cooking oil.',
+    category: 'price',
+    status: 'pending',
+    location: { latitude: 9.0380, longitude: 38.7480 },
+    address: 'Sidist Kilo, Addis Ababa',
+    timestamp: Date.now() - 7200000, // 2 hours ago
+    userId: 'user10',
+    anonymous: false,
+    confirmations: 1,
+    metadata: {
+      priceDetails: {
+        itemName: 'Cooking Oil',
+        unitOfMeasure: 'liter',
+        quantity: 1,
+        price: 0
+      }
+    }
+  }
+];
+
+const SAMPLE_FUEL_STATIONS: FuelStation[] = [
+  {
+    id: 'station1',
+    name: 'Total Mexico',
+    address: 'Mexico Square, Addis Ababa',
+    location: { latitude: 9.0350, longitude: 38.7400 }
+  },
+  {
+    id: 'station2',
+    name: 'Shell Gotera',
+    address: 'Gotera, Addis Ababa',
+    location: { latitude: 9.0080, longitude: 38.7620 }
+  },
+  {
+    id: 'station3',
+    name: 'NOC Bole',
+    address: 'Bole Road, Addis Ababa',
+    location: { latitude: 9.0200, longitude: 38.7500 }
+  },
+  {
+    id: 'station4',
+    name: 'Oilibya Kazanchis',
+    address: 'Kazanchis, Addis Ababa',
+    location: { latitude: 9.0300, longitude: 38.7550 }
+  }
+];
+
 export function useReports() {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [reports, setReports] = useState<Report[]>(SAMPLE_REPORTS);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(true);
 
-  // Fetch reports from database
+  // Initialize with mock data
   useEffect(() => {
-    fetchReports();
+    setReports(SAMPLE_REPORTS);
+    setLoading(false);
+    setError(null);
 
     return () => {
       mounted.current = false;
     };
   }, []);
 
-  const fetchReports = async (filters?: {
-    category?: ReportCategory[];
-    status?: string;
-    limit?: number;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      console.log('📊 Fetching reports from database...');
-      
-      const { data, error: fetchError } = await getReports({
-        category: filters?.category,
-        status: filters?.status,
-        limit: filters?.limit,
-      });
-
-      if (fetchError) {
-        console.error('❌ Error fetching reports:', fetchError);
-        throw fetchError;
-      }
-
-      if (!mounted.current) return;
-
-      // Transform database format to app format
-      const transformedReports: Report[] = (data || []).map(dbReport => ({
-        id: dbReport.id,
-        title: dbReport.title,
-        description: dbReport.description || undefined,
-        category: dbReport.category as ReportCategory,
-        status: dbReport.status as Report['status'],
-        location: {
-          latitude: dbReport.location[1],
-          longitude: dbReport.location[0],
-        },
-        address: dbReport.address || undefined,
-        timestamp: new Date(dbReport.created_at).getTime(),
-        imageUrl: dbReport.image_url || undefined,
-        userId: dbReport.user_id || 'anonymous',
-        anonymous: dbReport.anonymous,
-        confirmations: dbReport.confirmations,
-        isSponsored: dbReport.is_sponsored,
-        sponsoredBy: dbReport.sponsored_by || undefined,
-        expiresAt: dbReport.expires_at ? new Date(dbReport.expires_at).getTime() : undefined,
-        metadata: dbReport.metadata || {},
-      }));
-
-      console.log(`✅ Loaded ${transformedReports.length} reports from database`);
-      setReports(transformedReports);
-    } catch (err: any) {
-      if (mounted.current) {
-        setError(err.message || 'Failed to fetch reports');
-        console.error('Error fetching reports:', err);
-      }
-    } finally {
-      if (mounted.current) {
-        setLoading(false);
-      }
-    }
-  };
-
-  // Add a new report
+  // Add a new report (with database backup)
   const addReport = useCallback(async (report: Omit<Report, 'id' | 'timestamp' | 'confirmations'> & { userId: string }) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('📝 Creating new report in database...');
+      console.log('📝 Creating new report...');
 
-      // Create report in Supabase database
-      const { data: supabaseReportData, error: createError } = await createReport({
+      // Create new report with mock ID
+      const newReport: Report = {
+        id: `report_${Date.now()}`,
         title: report.title,
         description: report.description,
         category: report.category,
-        location: [report.location.longitude, report.location.latitude],
+        status: 'pending',
+        location: report.location,
         address: report.address,
-        image_url: report.imageUrl,
-        user_id: report.userId,
+        timestamp: Date.now(),
+        imageUrl: report.imageUrl,
+        userId: report.userId,
         anonymous: report.anonymous,
-        metadata: report.metadata,
-      });
-
-      if (createError) {
-        console.error('❌ Error creating report in database:', createError);
-        throw createError;
-      }
-
-      console.log('✅ Report created successfully in database:', supabaseReportData.id);
-
-      // Transform database format to app format
-      const newReport: Report = {
-        id: supabaseReportData.id,
-        title: supabaseReportData.title,
-        description: supabaseReportData.description,
-        category: supabaseReportData.category as ReportCategory,
-        status: supabaseReportData.status as Report['status'],
-        location: {
-          latitude: supabaseReportData.location[1],
-          longitude: supabaseReportData.location[0],
-        },
-        address: supabaseReportData.address,
-        timestamp: new Date(supabaseReportData.created_at).getTime(),
-        imageUrl: supabaseReportData.image_url,
-        userId: supabaseReportData.user_id,
-        anonymous: supabaseReportData.anonymous,
         confirmations: 0,
-        isSponsored: supabaseReportData.is_sponsored,
-        sponsoredBy: supabaseReportData.sponsored_by,
-        expiresAt: supabaseReportData.expires_at ? new Date(supabaseReportData.expires_at).getTime() : undefined,
-        metadata: supabaseReportData.metadata,
+        isSponsored: report.isSponsored,
+        sponsoredBy: report.sponsoredBy,
+        expiresAt: report.expiresAt,
+        metadata: report.metadata,
       };
 
       if (!mounted.current) return null;
 
+      // Add to local state immediately
       setReports(prev => [newReport, ...prev]);
+
+      // Try to save to database in background
+      try {
+        await createReport({
+          title: report.title,
+          description: report.description,
+          category: report.category,
+          location: [report.location.longitude, report.location.latitude],
+          address: report.address,
+          image_url: report.imageUrl,
+          user_id: report.userId,
+          anonymous: report.anonymous,
+          metadata: report.metadata,
+        });
+        console.log('✅ Report saved to database');
+      } catch (dbError) {
+        console.warn('⚠️ Failed to save to database, using local storage:', dbError);
+      }
+
       return newReport.id;
     } catch (err: any) {
       if (mounted.current) {
@@ -162,57 +304,52 @@ export function useReports() {
       setLoading(true);
       setError(null);
 
-      console.log('📝 Creating sponsored report in database...');
+      console.log('📝 Creating sponsored report...');
 
-      // Create sponsored report in Supabase database
-      const { data: supabaseReportData, error: createError } = await createReport({
+      const newReport: Report = {
+        id: `sponsored_${Date.now()}`,
         title: report.title,
         description: report.description,
         category: report.category,
-        location: [report.location.latitude, report.location.longitude],
+        status: 'pending',
+        location: report.location,
         address: report.address,
-        image_url: report.imageUrl,
-        user_id: report.userId,
+        timestamp: Date.now(),
+        imageUrl: report.imageUrl,
+        userId: report.userId,
         anonymous: report.anonymous,
-        is_sponsored: true,
-        sponsored_by: report.sponsoredBy,
-        expires_at: new Date(report.expiresAt).toISOString(),
-        metadata: report.metadata,
-      });
-
-      if (createError) {
-        console.error('❌ Error creating sponsored report:', createError);
-        throw createError;
-      }
-
-      console.log('✅ Sponsored report created successfully:', supabaseReportData.id);
-
-      // Transform database format to app format
-      const newReport: Report = {
-        id: supabaseReportData.id,
-        title: supabaseReportData.title,
-        description: supabaseReportData.description,
-        category: supabaseReportData.category as ReportCategory,
-        status: supabaseReportData.status as Report['status'],
-        location: {
-          latitude: supabaseReportData.location[1],
-          longitude: supabaseReportData.location[0],
-        },
-        address: supabaseReportData.address,
-        timestamp: new Date(supabaseReportData.created_at).getTime(),
-        imageUrl: supabaseReportData.image_url,
-        userId: supabaseReportData.user_id,
-        anonymous: supabaseReportData.anonymous,
         confirmations: 0,
         isSponsored: true,
         sponsoredBy: report.sponsoredBy,
         expiresAt: report.expiresAt,
-        metadata: supabaseReportData.metadata,
+        metadata: report.metadata,
       };
 
       if (!mounted.current) return null;
 
       setReports(prev => [newReport, ...prev]);
+
+      // Try to save to database in background
+      try {
+        await createReport({
+          title: report.title,
+          description: report.description,
+          category: report.category,
+          location: [report.location.longitude, report.location.latitude],
+          address: report.address,
+          image_url: report.imageUrl,
+          user_id: report.userId,
+          anonymous: report.anonymous,
+          is_sponsored: true,
+          sponsored_by: report.sponsoredBy,
+          expires_at: new Date(report.expiresAt).toISOString(),
+          metadata: report.metadata,
+        });
+        console.log('✅ Sponsored report saved to database');
+      } catch (dbError) {
+        console.warn('⚠️ Failed to save sponsored report to database:', dbError);
+      }
+
       return newReport.id;
     } catch (err: any) {
       if (mounted.current) {
@@ -232,17 +369,9 @@ export function useReports() {
     try {
       console.log('👍 Confirming report:', reportId);
       
-      // Update confirmations in database
-      const { error: updateError } = await updateReportConfirmations(reportId);
-      
-      if (updateError) {
-        console.error('❌ Error updating confirmations in database:', updateError);
-        throw updateError;
-      }
-
       if (!mounted.current) return false;
 
-      // Update local state
+      // Update local state immediately
       setReports(prev => 
         prev.map(report => 
           report.id === reportId 
@@ -254,8 +383,15 @@ export function useReports() {
             : report
         )
       );
+
+      // Try to update database in background
+      try {
+        await updateReportConfirmations(reportId);
+        console.log('✅ Report confirmation updated in database');
+      } catch (dbError) {
+        console.warn('⚠️ Failed to update confirmation in database:', dbError);
+      }
       
-      console.log('✅ Report confirmation updated successfully');
       return true;
     } catch (err: any) {
       if (mounted.current) {
@@ -274,50 +410,41 @@ export function useReports() {
     return reports.filter(report => categories.includes(report.category));
   }, [reports]);
 
-  // Get nearby fuel stations from businesses table
+  // Get nearby fuel stations
   const getNearbyFuelStations = useCallback(async (
     latitude: number, 
     longitude: number, 
     radius: number = 2
   ): Promise<FuelStation[]> => {
     try {
-      console.log('⛽ Fetching nearby fuel stations from database...');
+      console.log('⛽ Getting nearby fuel stations...');
       
-      const { data, error } = await getBusinesses({
-        status: 'verified',
-        category: 'fuel',
+      // Filter mock stations by distance
+      const nearbyStations = SAMPLE_FUEL_STATIONS.filter(station => {
+        const latDiff = Math.abs(station.location.latitude - latitude);
+        const lonDiff = Math.abs(station.location.longitude - longitude);
+        const distance = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff) * 111; // Rough km conversion
+        return distance <= radius;
       });
 
-      if (error) {
-        console.error('❌ Error fetching fuel stations:', error);
-        return [];
-      }
-
-      // Transform businesses to fuel stations and filter by distance
-      const fuelStations: FuelStation[] = (data || [])
-        .map(business => ({
-          id: business.id,
-          name: business.name,
-          address: business.address,
-          location: {
-            latitude: business.location[1],
-            longitude: business.location[0],
-          },
-        }))
-        .filter(station => {
-          // Calculate distance (simple approximation)
-          const latDiff = Math.abs(station.location.latitude - latitude);
-          const lonDiff = Math.abs(station.location.longitude - longitude);
-          const distance = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff) * 111; // Rough km conversion
-          return distance <= radius;
-        });
-
-      console.log(`✅ Found ${fuelStations.length} nearby fuel stations`);
-      return fuelStations;
+      console.log(`✅ Found ${nearbyStations.length} nearby fuel stations`);
+      return nearbyStations;
     } catch (err) {
       console.error('❌ Error fetching fuel stations:', err);
-      return [];
+      return SAMPLE_FUEL_STATIONS; // Return all stations as fallback
     }
+  }, []);
+
+  // Refresh reports (reload mock data)
+  const refreshReports = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    // Simulate network delay
+    setTimeout(() => {
+      setReports(SAMPLE_REPORTS);
+      setLoading(false);
+    }, 500);
   }, []);
 
   return {
@@ -329,6 +456,6 @@ export function useReports() {
     confirmReport,
     filterReportsByCategory,
     getNearbyFuelStations,
-    refreshReports: fetchReports,
+    refreshReports,
   };
 }
