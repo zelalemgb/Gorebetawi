@@ -10,12 +10,14 @@ This project uses Supabase for authentication and data storage. To run the app y
 cp .env.example .env
 ```
 
-2. Edit the new `.env` file and add your Supabase URL and anon key. This project uses the following Supabase credentials:
+2. Edit the new `.env` file and add your Supabase URL and anon key:
 
 ```text
-EXPO_PUBLIC_SUPABASE_URL=https://mjohmhcctepekglsbmuf.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qb2htaGNjdGVwZWtnbHNibXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzY3MzQsImV4cCI6MjA2NDUxMjczNH0.mR4lTASrj_1jMxr8Fa6XHlkQNzANQvMqtNN9YW1G0A4
+EXPO_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
+
+You can find these values in your Supabase dashboard under **Project Settings → API**. Do **not** commit the `.env` file or any real keys to version control. If credentials are ever exposed, rotate them immediately in the Supabase dashboard.
 
 Make sure to save the file **before** starting the development server. If you
 edit or create `.env` while the server is running, stop the server and restart
