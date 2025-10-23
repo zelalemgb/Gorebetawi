@@ -17,22 +17,21 @@ export default function RootLayout() {
     const testConnection = async () => {
       try {
         console.log('🔌 Testing Supabase database connection...');
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('users')
-          .select('count')
+          .select('id')
           .limit(1);
-          
+
         if (error) {
-          console.error('❌ Supabase database connection failed:', error.message);
-          console.error('Full error:', error);
+          console.warn('⚠️ Supabase query error:', error.message);
         } else {
           console.log('✅ Supabase database connected successfully');
         }
       } catch (err) {
-        console.error('❌ Failed to test Supabase connection:', err);
+        console.warn('⚠️ Failed to test Supabase connection:', err);
       }
     };
-    
+
     testConnection();
   }, []);
 
