@@ -227,12 +227,12 @@ export default function FloatingSummaryBubble({
         )
       );
 
-      // Auto-dismiss after 6.5 seconds
+      // Auto-dismiss after 4 seconds
       const dismissTimer = setTimeout(() => {
         if (!isExpanded) {
           hideBubble();
         }
-      }, 6500);
+      }, 4000);
 
       return () => clearTimeout(dismissTimer);
     }
@@ -296,32 +296,12 @@ export default function FloatingSummaryBubble({
         onPress={handlePress}
         activeOpacity={0.9}
       >
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <MapPin size={16} color="#667eea" />
-            <Text style={styles.title}>
-              {totalReports} report{totalReports !== 1 ? 's' : ''} nearby
-            </Text>
-          </View>
-          <ChevronDown 
-            size={16} 
-            color="#718096" 
-            style={[
-              styles.chevron,
-              { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }
-            ]} 
-          />
-        </View>
-        
-        <View style={styles.summaryList}>
-          {summaryItems.map((item, index) => (
-            <View key={item.category} style={styles.summaryItem}>
-              <Text style={styles.emoji}>{item.emoji}</Text>
-              <Text style={styles.summaryText} numberOfLines={1}>
-                {item.count > 1 ? `${item.count}x ` : ''}{getSummaryText(item)}
-              </Text>
-            </View>
-          ))}
+        <View style={styles.summaryContent}>
+          <MapPin size={14} color="#667eea" />
+          <Text style={styles.summaryText} numberOfLines={1}>
+            {summaryItems[0].emoji} {getSummaryText(summaryItems[0])}
+            {totalReports > 1 && ` +${totalReports - 1} more`}
+          </Text>
         </View>
       </TouchableOpacity>
       
@@ -397,56 +377,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bubble: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 12,
+    padding: 12,
     minWidth: Dimensions.get('window').width - 32,
     maxWidth: Dimensions.get('window').width - 32,
-    shadowColor: 'rgba(102, 126, 234, 0.3)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: 'rgba(0, 0, 0, 0.08)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  titleContainer: {
+  summaryContent: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  title: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 15,
-    color: '#2d3748',
-    marginLeft: 6,
-    letterSpacing: '0.2px',
-  },
-  chevron: {
-    opacity: 0.6,
-  },
-  summaryList: {
     gap: 8,
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  emoji: {
-    fontSize: 16,
-    marginRight: 8,
-    width: 20,
-    textAlign: 'center',
   },
   summaryText: {
     fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: '#4a5568',
+    fontSize: 13,
+    color: '#2d3748',
     flex: 1,
     letterSpacing: '0.1px',
   },

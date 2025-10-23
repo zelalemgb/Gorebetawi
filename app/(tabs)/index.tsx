@@ -258,39 +258,40 @@ export default function MapScreen() {
         </View>
       )}
       
-      {/* Category Filter Chips - Only show when needed */}
-      <CategoryIconToolbar
-        reports={reports}
-        selectedCategories={selectedCategories}
-        onToggleCategory={handleToggleCategory}
-        userLocation={location ? {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        } : null}
-      />
-      
-      {/* Floating Summary Bubble */}
-      <FloatingSummaryBubble
-        reports={reports}
-        userLocation={location ? {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        } : null}
-        onReportSelect={handleSummaryReportSelect}
-        onExpand={handleSummaryExpand}
-      />
-      
-      {/* Trend Insight Bubble */}
-      <TrendInsightBubble
-        reports={reports}
-        userLocation={location ? {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        } : null}
-        isMapIdle={isIdle}
-        onHighlightReports={handleHighlightReports}
-        onDismiss={handleTrendDismiss}
-      />
+      {/* Category Filter - Only show when not filtering */}
+      {selectedCategories.length === 0 && (
+        <CategoryIconToolbar
+          reports={reports}
+          selectedCategories={selectedCategories}
+          onToggleCategory={handleToggleCategory}
+          userLocation={location ? {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          } : null}
+        />
+      )}
+
+      {/* Show category filter chips when filtering */}
+      {selectedCategories.length > 0 && (
+        <CategoryFilterChips
+          selectedCategories={selectedCategories}
+          onToggleCategory={handleToggleCategory}
+          reportCounts={reportCounts}
+        />
+      )}
+
+      {/* Only show summary when no report is selected */}
+      {!selectedReport && (
+        <FloatingSummaryBubble
+          reports={reports}
+          userLocation={location ? {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          } : null}
+          onReportSelect={handleSummaryReportSelect}
+          onExpand={handleSummaryExpand}
+        />
+      )}
       
       {/* Report Preview */}
       {selectedReport && (

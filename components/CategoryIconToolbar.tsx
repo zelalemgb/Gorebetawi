@@ -231,35 +231,25 @@ export default function CategoryIconToolbar({
 
     return (
       <Animated.View style={[styles.iconContainer, containerStyle]}>
-        {/* Glow effect for active categories */}
-        <Animated.View 
-          style={[
-            styles.glowRing,
-            { backgroundColor: category.color },
-            glowStyle
-          ]} 
-        />
-        
         <AnimatedTouchableOpacity
           style={[
             styles.iconButton,
             isSelected && {
               backgroundColor: category.color,
-              shadowColor: category.color,
             },
             animatedStyle
           ]}
           onPress={handlePress}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <IconComponent 
-            size={20} 
+          <IconComponent
+            size={18}
             color={isSelected ? 'white' : category.color}
-            strokeWidth={2.5}
+            strokeWidth={2}
           />
-          
-          {/* Count badge for nearby reports */}
-          {category.count > 0 && (
+
+          {/* Count badge for nearby reports - only if more than 1 */}
+          {category.count > 1 && (
             <View style={[
               styles.countBadge,
               { backgroundColor: category.color }
@@ -267,42 +257,26 @@ export default function CategoryIconToolbar({
               <Text style={styles.countText}>{category.count}</Text>
             </View>
           )}
-          
-          {/* Recent indicator dot */}
-          {category.hasRecent && (
-            <View style={[
-              styles.recentDot,
-              { backgroundColor: '#ff6b6b' }
-            ]} />
-          )}
         </AnimatedTouchableOpacity>
-        
-        {/* Category label */}
-        <Text style={[
-          styles.iconLabel,
-          isSelected && { color: category.color, fontWeight: '600' }
-        ]}>
-          {category.label}
-        </Text>
       </Animated.View>
     );
   };
+
+  // Only show categories that have nearby reports
+  const activeCategoryAnalysis = categoryAnalysis.filter(c => c.hasNearby);
+
+  if (activeCategoryAnalysis.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.toolbar}>
         <View style={styles.iconRow}>
-          {categoryAnalysis.map((category) => (
+          {activeCategoryAnalysis.map((category) => (
             <CategoryIcon key={category.key} category={category} />
           ))}
         </View>
-        
-        {/* Summary text */}
-        {userLocation && (
-          <Text style={styles.summaryText}>
-            Tap icons to filter • {categoryAnalysis.filter(c => c.hasNearby).length} active nearby
-          </Text>
-        )}
       </View>
     </View>
   );
@@ -318,110 +292,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toolbar: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    shadowColor: 'rgba(102, 126, 234, 0.3)',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    backdropFilter: 'blur(12px)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    shadowColor: 'rgba(0, 0, 0, 0.08)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
     maxWidth: '95%',
   },
   iconRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 12,
   },
   iconContainer: {
     alignItems: 'center',
     position: 'relative',
-    marginHorizontal: 4,
-  },
-  glowRing: {
-    position: 'absolute',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    top: -6,
-    left: -6,
-    zIndex: 1,
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(248, 250, 252, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    zIndex: 2,
-    shadowColor: 'rgba(102, 126, 234, 0.2)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.6)',
+    shadowColor: 'rgba(0, 0, 0, 0.05)',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
   },
   countBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    top: -6,
+    right: -6,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 4,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-    zIndex: 3,
-    shadowColor: 'rgba(102, 126, 234, 0.3)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  countText: {
-    color: 'white',
-    fontSize: 11,
-    fontWeight: '700',
-    lineHeight: 14,
-    letterSpacing: '0.2px',
-  },
-  recentDot: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
     borderWidth: 1.5,
     borderColor: 'white',
-    zIndex: 4,
-    shadowColor: 'rgba(255, 107, 107, 0.4)',
+    shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 3,
   },
-  iconLabel: {
-    fontFamily: 'Inter-Medium',
+  countText: {
+    color: 'white',
     fontSize: 10,
-    color: '#64748b',
-    marginTop: 4,
-    letterSpacing: '0.2px',
-  },
-  summaryText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 11,
-    color: '#64748b',
-    textAlign: 'center',
-    letterSpacing: '0.1px',
+    fontWeight: '700',
+    lineHeight: 12,
   },
 });
