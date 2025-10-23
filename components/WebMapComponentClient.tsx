@@ -272,9 +272,6 @@ export default function WebMapComponentClient({
             <Marker
               key={report.id}
               position={[report.location.latitude, report.location.longitude]}
-             eventHandlers={{
-               click: () => onMarkerClick(report)
-             }}
               icon={L.divIcon({
                 className: `clean-report-marker marker-${report.id}`,
                 html: `
@@ -471,110 +468,24 @@ export default function WebMapComponentClient({
                 iconAnchor: [18, 18],
               })}
               eventHandlers={{
-                click: () => onMarkerClick(report),
-                mouseover: (e) => {
-                  const marker = e.target;
-                  marker.openPopup();
-                  onMarkerHover?.(report);
-                },
-                mouseout: (e) => {
-                  const marker = e.target;
-                  marker.closePopup();
-                  onMarkerHoverOut?.();
-               },
-               click: (e) => {
-                 const marker = e.target;
-                 marker.closePopup();
-                 onMarkerClick(report);
-                }
+                click: () => onMarkerClick(report)
               }}
             >
-              <Popup closeButton={false} autoClose={false} closeOnClick={false}>
-                <div style={{ 
-                  maxWidth: '250px',
-                  padding: '12px 16px',
+              <Tooltip direction="top" offset={[0, -10]} opacity={0.98}>
+                <div style={{
+                  padding: '6px 10px',
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  background: 'rgba(255, 255, 255, 0.98)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(102, 126, 234, 0.15)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  backdropFilter: 'blur(10px)'
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#2d3748',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '200px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
                 }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <span style={{ 
-                      fontSize: '16px', 
-                      marginRight: '8px' 
-                    }}>
-                      {icon}
-                    </span>
-                    <span style={{
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: color,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      {report.category}
-                    </span>
-                  </div>
-                  
-                  <h3 style={{ 
-                    margin: '0 0 8px 0', 
-                    fontSize: '15px', 
-                    fontWeight: '600',
-                    color: '#2d3748',
-                    lineHeight: '1.3'
-                  }}>
-                    {report.title}
-                  </h3>
-                  
-                  {report.description && (
-                    <p style={{ 
-                      margin: '0 0 8px 0',
-                      fontSize: '13px',
-                      color: '#4a5568',
-                      lineHeight: '1.4'
-                    }}>
-                      {report.description.length > 80 
-                        ? report.description.substring(0, 80) + '...'
-                        : report.description
-                      }
-                    </p>
-                  )}
-                  
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: '11px',
-                    color: '#718096',
-                    fontWeight: '500'
-                  }}>
-                    <span>
-                      {new Date(report.timestamp).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                    {report.confirmations > 0 && (
-                      <span style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '8px',
-                        fontSize: '10px',
-                        fontWeight: '600'
-                      }}>
-                        {report.confirmations} confirmed
-                      </span>
-                    )}
-                  </div>
+                  {icon} {report.title}
                 </div>
-              </Popup>
+              </Tooltip>
             </Marker>
           );
         })}
