@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, Circle } from 'react-leaflet';
 import { Report } from '@/types';
 import { Colors } from '@/constants/Colors';
 import L from 'leaflet';
@@ -468,25 +468,11 @@ export default function WebMapComponentClient({
                 iconAnchor: [18, 18],
               })}
               eventHandlers={{
-                click: () => onMarkerClick(report)
+                click: () => onMarkerClick(report),
+                mouseover: () => onMarkerHover?.(report),
+                mouseout: () => onMarkerHoverOut?.()
               }}
-            >
-              <Tooltip direction="top" offset={[0, -10]} opacity={0.98}>
-                <div style={{
-                  padding: '6px 10px',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#2d3748',
-                  whiteSpace: 'nowrap',
-                  maxWidth: '200px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {icon} {report.title}
-                </div>
-              </Tooltip>
-            </Marker>
+            />
           );
         })}
       </MapContainer>
