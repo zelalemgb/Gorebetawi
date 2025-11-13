@@ -17,6 +17,7 @@ import CategoryFilterChips from '@/components/CategoryFilterChips';
 import FloatingSummaryBubble from '@/components/FloatingSummaryBubble';
 import CategoryIconToolbar from '@/components/CategoryIconToolbar';
 import TrendInsightBubble from '@/components/TrendInsightBubble';
+import EmptyStateMessage from '@/components/EmptyStateMessage';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -78,6 +79,37 @@ export default function MapScreen() {
       ? filterReportsByCategory(selectedCategories)
       : reports;
   }, [selectedCategories, reports, filterReportsByCategory]);
+
+  // Calculate distance between two coordinates in kilometers
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Check if there are reports within 1km radius
+  const nearbyReports = React.useMemo(() => {
+    if (!location) return filteredReports;
+
+    return filteredReports.filter(report => {
+      const distance = calculateDistance(
+        location.coords.latitude,
+        location.coords.longitude,
+        report.location.latitude,
+        report.location.longitude
+      );
+      return distance <= 1; // Within 1km
+    });
+  }, [location, filteredReports]);
+
+  // Determine if we should show empty state
+  const shouldShowEmptyState = user && location && !loading && nearbyReports.length === 0;
 
   const handleMarkerClick = (report: Report) => {
     setSelectedReport(report);
@@ -280,8 +312,8 @@ export default function MapScreen() {
         />
       )}
 
-      {/* Only show summary when no report is selected */}
-      {!selectedReport && (
+      {/* Only show summary when no report is selected and there are nearby reports */}
+      {!selectedReport && nearbyReports.length > 0 && (
         <FloatingSummaryBubble
           reports={reports}
           userLocation={location ? {
@@ -290,6 +322,17 @@ export default function MapScreen() {
           } : null}
           onReportSelect={handleSummaryReportSelect}
           onExpand={handleSummaryExpand}
+        />
+      )}
+
+      {/* Empty State - Show when user is logged in and no reports nearby */}
+      {shouldShowEmptyState && !selectedReport && (
+        <EmptyStateMessage
+          onCreateReport={handleAddReport}
+          userLocation={location ? {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          } : null}
         />
       )}
       
