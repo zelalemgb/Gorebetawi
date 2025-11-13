@@ -1,41 +1,44 @@
-// Report Types
-export type ReportCategory = 
-  | 'light' 
-  | 'water' 
-  | 'fuel' 
-  | 'price' 
-  | 'traffic' 
-  | 'infrastructure' 
-  | 'environment'
-  | 'safety';
+// Report Types - Updated to match database ENUMs
+export type ReportCategory =
+  | 'light'
+  | 'water'
+  | 'fuel'
+  | 'price'
+  | 'security'
+  | 'health'
+  | 'infrastructure'
+  | 'other';
 
-export type ReportStatus = 'pending' | 'confirmed' | 'resolved';
+export type ReportStatus = 'open' | 'in_progress' | 'resolved' | 'rejected';
 
-export type UserRole = 'observer' | 'reporter' | 'validator' | 'partner' | 'business';
+export type UserRole = 'citizen' | 'business' | 'admin';
 
-export type BusinessType = 'fuel_station' | 'retail_shop' | 'market' | 'other';
+export type BusinessType = 'gas_station' | 'water_supplier' | 'other';
 
-export type BusinessStatus = 'pending' | 'verified' | 'rejected';
+export type BusinessCategory = ReportCategory;
+
+export type BusinessStatus = 'pending' | 'approved' | 'rejected';
 
 export interface User {
   id: string;
   email: string;
   name?: string;
-  role?: UserRole;
+  role: UserRole;
   preferences?: {
     interestedCategories?: ReportCategory[];
     alwaysAnonymous?: boolean;
     enableLocationAccess?: boolean;
   };
-  reports?: number;
-  confirmations?: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export interface Business {
   id: string;
   name: string;
   type: BusinessType;
-  category: ReportCategory;
+  category: BusinessCategory;
   contactPerson: string;
   phone: string;
   location: {
@@ -46,8 +49,10 @@ export interface Business {
   logoUrl?: string;
   status: BusinessStatus;
   rejectionReason?: string;
-  createdAt: number;
-  updatedAt: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export interface PriceDetails {
@@ -79,14 +84,13 @@ export interface Report {
     longitude: number;
   };
   address?: string;
-  timestamp: number;
   imageUrl?: string;
-  userId: string;
+  userId?: string | null;
   anonymous: boolean;
   confirmations: number;
-  isSponsored?: boolean;
-  sponsoredBy?: string;
-  expiresAt?: number;
+  isSponsored: boolean;
+  sponsoredBy?: string | null;
+  expiresAt?: string | null;
   metadata?: {
     severity?: 'light' | 'moderate' | 'heavy';
     availability?: boolean;
@@ -96,4 +100,45 @@ export interface Report {
     priceDetails?: PriceDetails;
     fuelStation?: FuelStation;
   };
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+}
+
+// New types for enhanced features
+export interface ReportConfirmation {
+  id: string;
+  reportId: string;
+  userId: string;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  tableName: string;
+  recordId: string;
+  action: 'insert' | 'update' | 'delete';
+  oldData?: Record<string, any>;
+  newData?: Record<string, any>;
+  changedBy?: string;
+  changedAt: string;
+}
+
+export interface ReportStatusHistory {
+  id: string;
+  reportId: string;
+  oldStatus?: ReportStatus;
+  newStatus: ReportStatus;
+  changedBy?: string;
+  notes?: string;
+  changedAt: string;
+}
+
+export interface BusinessVerification {
+  id: string;
+  businessId: string;
+  verifiedBy?: string;
+  status: BusinessStatus;
+  notes?: string;
+  verifiedAt: string;
 }
