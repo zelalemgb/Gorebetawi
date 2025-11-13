@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TextInput, 
-  SafeAreaView, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  ActivityIndicator
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Mail, Lock, User, Phone } from 'lucide-react-native';
@@ -134,14 +135,18 @@ export default function RegisterScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
-        <ScrollView contentContainerStyle={styles.scrollView}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
               <ArrowLeft size={24} color={LightTheme.text} />
             </TouchableOpacity>
             <Text style={styles.title}>Create Account</Text>
           </View>
-          
+
           <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
               <View style={styles.inputIconContainer}>
@@ -231,16 +236,21 @@ export default function RegisterScreen() {
             
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <AppButton
-              title="Create Account"
+            <TouchableOpacity
+              style={styles.registerButton}
               onPress={() => {
                 console.log('🔵 Button press detected!');
                 handleRegister();
               }}
-              loading={loading}
               disabled={loading}
-              style={styles.button}
-            />
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.registerButtonText}>Create Account</Text>
+              )}
+            </TouchableOpacity>
           </View>
           
           <View style={styles.footer}>
@@ -264,9 +274,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollView: {
-    flexGrow: 1,
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
@@ -359,7 +368,22 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 24,
-    width: '100%',
+    marginBottom: 16,
+  },
+  registerButton: {
+    backgroundColor: LightTheme.accent,
+    height: 56,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  registerButtonText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    color: LightTheme.white,
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
