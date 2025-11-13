@@ -68,44 +68,56 @@ export function useAuth() {
   async function handleUserSession(authUser: any) {
     try {
       console.log('👤 Handling user session for:', authUser.email);
-      
-      // Try to get existing user profile
-      let { data: profile, error: profileError } = await getUserProfile(authUser.id);
-      
-      // If profile doesn't exist, create it (fallback in case trigger didn't work)
-      if (profileError && profileError.code === 'PGRST116') {
-        console.log('📝 Profile not found, creating for:', authUser.email);
-        const { data: newProfile, error: createError } = await createUserProfile(authUser.id, {
-          email: authUser.email!,
-          name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
-          role: 'citizen',
-          preferences: {},
-        });
-        
-        if (createError) {
-          console.error('❌ Error creating user profile:', createError);
-          throw createError;
+
+      // Add timeout to prevent infinite hanging
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile load timeout')), 10000)
+      );
+
+      const profilePromise = (async () => {
+        // Try to get existing user profile
+        let { data: profile, error: profileError } = await getUserProfile(authUser.id);
+
+        // If profile doesn't exist, create it (fallback in case trigger didn't work)
+        if (profileError && profileError.code === 'PGRST116') {
+          console.log('📝 Profile not found, creating for:', authUser.email);
+          const { data: newProfile, error: createError } = await createUserProfile(authUser.id, {
+            email: authUser.email!,
+            name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
+            role: 'citizen',
+            preferences: {},
+          });
+
+          if (createError) {
+            console.error('❌ Error creating user profile:', createError);
+            throw createError;
+          }
+
+          profile = newProfile;
+        } else if (profileError) {
+          console.error('❌ Error fetching user profile:', profileError);
+          throw profileError;
         }
-        
-        profile = newProfile;
-      } else if (profileError) {
-        console.error('❌ Error fetching user profile:', profileError);
-        throw profileError;
-      }
-      
+
+        return profile;
+      })();
+
+      const profile = await Promise.race([profilePromise, timeoutPromise]);
+
       if (profile) {
-        console.log('✅ Profile loaded successfully:', profile.email);
+        console.log('✅ Profile loaded successfully:', (profile as any).email);
         setUser({
-          id: profile.id,
-          email: profile.email,
-          name: profile.name,
-          role: profile.role as User['role'],
-          preferences: profile.preferences || {},
+          id: (profile as any).id,
+          email: (profile as any).email,
+          name: (profile as any).name,
+          role: (profile as any).role as User['role'],
+          preferences: (profile as any).preferences || {},
         });
       }
     } catch (err: any) {
       console.error('❌ Error handling user session:', err);
       setError(err.message || 'Failed to load user profile');
+      setLoading(false);
     }
   }
 
@@ -140,46 +152,59 @@ export function useAuth() {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('📝 Attempting to sign up user:', email);
       console.log('📝 Sign up data:', { email, passwordLength: password.length, name });
-      
-      const { data, error: signUpError } = await signUpWithEmail(email, password);
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout - please try again')), 30000)
+      );
+
+      const signUpPromise = signUpWithEmail(email, password);
+
+      const { data, error: signUpError } = await Promise.race([
+        signUpPromise,
+        timeoutPromise
+      ]) as any;
 
       if (signUpError) {
         console.error('❌ Sign up error:', signUpError);
         setError(signUpError.message || 'Failed to create account');
-        throw signUpError;
+        setLoading(false);
+        return false;
       }
-      
+
       if (data.user) {
         console.log('✅ User created successfully:', data.user.email);
-        
+
         // Update user metadata with name if provided
         if (name) {
           console.log('📝 Updating user metadata with name:', name);
-          const { error: updateError } = await supabase.auth.updateUser({
-            data: { name }
-          });
-          
-          if (updateError) {
-            console.error('⚠️ Error updating user metadata:', updateError);
-            // Don't throw here, as the user was created successfully
+          try {
+            const { error: updateError } = await supabase.auth.updateUser({
+              data: { name }
+            });
+
+            if (updateError) {
+              console.error('⚠️ Error updating user metadata:', updateError);
+            }
+          } catch (updateErr) {
+            console.error('⚠️ Error updating user metadata:', updateErr);
           }
         }
       }
-      
+
       console.log('✅ Sign up process completed');
+      setLoading(false);
       return true;
     } catch (err: any) {
       console.error('❌ Sign up failed:', err);
-      const errorMessage = err.message === 'User already registered' 
-        ? 'An account with this email already exists' 
+      const errorMessage = err.message === 'User already registered'
+        ? 'An account with this email already exists'
         : err.message || 'Failed to create account';
       setError(errorMessage);
-      return false;
-    } finally {
       setLoading(false);
+      return false;
     }
   };
 
