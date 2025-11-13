@@ -18,6 +18,8 @@ import FloatingSummaryBubble from '@/components/FloatingSummaryBubble';
 import CategoryIconToolbar from '@/components/CategoryIconToolbar';
 import TrendInsightBubble from '@/components/TrendInsightBubble';
 import EmptyStateMessage from '@/components/EmptyStateMessage';
+import LightReportModal from '@/components/LightReportModal';
+import QuickLightReportButton from '@/components/QuickLightReportButton';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -39,6 +41,7 @@ export default function MapScreen() {
   const [selectedCategories, setSelectedCategories] = useState<ReportCategory[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reportFormVisible, setReportFormVisible] = useState(false);
+  const [lightReportVisible, setLightReportVisible] = useState(false);
   const [highlightedReports, setHighlightedReports] = useState<Report[]>([]);
   
   const headerAnimation = useRef(new Animated.Value(0)).current;
@@ -161,15 +164,21 @@ export default function MapScreen() {
     trackInteraction();
   };
 
-  const handleAddReport = () => {
+  const handleAddReport = (category?: ReportCategory) => {
     // Check if user is authenticated before allowing report creation
     if (!user) {
       // Redirect to login if not authenticated
       router.push('/auth/login');
       return;
     }
-    
-    setReportFormVisible(true);
+
+    // Use simplified light report modal for light category
+    if (category === 'light') {
+      setLightReportVisible(true);
+    } else {
+      setReportFormVisible(true);
+    }
+
     if (location) {
       addReportPoint(location.coords.latitude, location.coords.longitude);
     }
@@ -178,6 +187,11 @@ export default function MapScreen() {
 
   const handleCloseReportForm = () => {
     setReportFormVisible(false);
+    trackInteraction();
+  };
+
+  const handleCloseLightReport = () => {
+    setLightReportVisible(false);
     trackInteraction();
   };
 
@@ -350,12 +364,27 @@ export default function MapScreen() {
       
       {/* Add Report Button */}
       <FloatingActionButton onPress={handleAddReport} />
+
+      {/* Quick Light Report Button */}
+      <QuickLightReportButton onPress={() => handleAddReport('light')} />
       
       {/* Report Form Modal */}
       {reportFormVisible && (
         <ReportFormModal
           visible={reportFormVisible}
           onClose={handleCloseReportForm}
+          currentLocation={location ? {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          } : undefined}
+        />
+      )}
+
+      {/* Light Report Modal */}
+      {lightReportVisible && (
+        <LightReportModal
+          visible={lightReportVisible}
+          onClose={handleCloseLightReport}
           currentLocation={location ? {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
