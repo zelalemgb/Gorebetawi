@@ -56,6 +56,7 @@ export default function BusinessRegistrationScreen() {
   
   const [businessName, setBusinessName] = useState('');
   const [contactPerson, setContactPerson] = useState('');
+  const [countryCode, setCountryCode] = useState('+251');
   const [phone, setPhone] = useState('');
   const [type, setType] = useState<BusinessType | null>(null);
   const [category, setCategory] = useState<ReportCategory | null>(null);
@@ -88,11 +89,18 @@ export default function BusinessRegistrationScreen() {
     if (!phone.trim()) {
       setPhoneError('Phone number is required');
       isValid = false;
-    } else if (!/^\+?[0-9]{10,15}$/.test(phone.replace(/\s/g, ''))) {
-      setPhoneError('Invalid phone number');
-      isValid = false;
     } else {
-      setPhoneError('');
+      const cleanPhone = phone.replace(/\s/g, '');
+      // Ethiopian phone numbers are 9 digits (without country code)
+      if (countryCode === '+251' && !/^[0-9]{9}$/.test(cleanPhone)) {
+        setPhoneError('Phone number must be 9 digits');
+        isValid = false;
+      } else if (!/^[0-9]{7,12}$/.test(cleanPhone)) {
+        setPhoneError('Invalid phone number');
+        isValid = false;
+      } else {
+        setPhoneError('');
+      }
     }
     
     if (!type) {
@@ -121,7 +129,7 @@ export default function BusinessRegistrationScreen() {
         type: type!,
         category: category!,
         contactPerson,
-        phone,
+        phone: `${countryCode}${phone}`,
         location: {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -196,14 +204,25 @@ export default function BusinessRegistrationScreen() {
               
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Phone Number</Text>
-                <TextInput
-                  style={styles.input}
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="+251 91 234 5678"
-                  keyboardType="phone-pad"
-                  placeholderTextColor={LightTheme.neutralDark}
-                />
+                <View style={styles.phoneContainer}>
+                  <TextInput
+                    style={styles.countryCodeInput}
+                    value={countryCode}
+                    onChangeText={setCountryCode}
+                    keyboardType="phone-pad"
+                    placeholderTextColor={LightTheme.neutralDark}
+                  />
+                  <TextInput
+                    style={styles.phoneInput}
+                    value={phone}
+                    onChangeText={setPhone}
+                    placeholder="91 234 5678"
+                    keyboardType="phone-pad"
+                    placeholderTextColor={LightTheme.neutralDark}
+                    maxLength={countryCode === '+251' ? 9 : 12}
+                  />
+                </View>
+                <Text style={styles.phoneHint}>Ethiopian format: 9 digits after country code</Text>
                 {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
               </View>
             </View>
@@ -371,6 +390,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: LightTheme.text,
     backgroundColor: LightTheme.white,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  countryCodeInput: {
+    width: 90,
+    height: 48,
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: LightTheme.text,
+    backgroundColor: LightTheme.white,
+    textAlign: 'center',
+  },
+  phoneInput: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: LightTheme.text,
+    backgroundColor: LightTheme.white,
+  },
+  phoneHint: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: LightTheme.secondaryText,
+    marginTop: 4,
   },
   errorText: {
     fontFamily: 'Inter-Regular',

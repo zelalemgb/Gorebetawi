@@ -22,6 +22,7 @@ export default function RegisterScreen() {
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [countryCode, setCountryCode] = useState('+251');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -57,9 +58,18 @@ export default function RegisterScreen() {
     }
     
     // Validate phone (optional)
-    if (phone.trim() && !/^\+?[0-9]{10,15}$/.test(phone.replace(/\s/g, ''))) {
-      setPhoneError('Phone number is invalid');
-      isValid = false;
+    if (phone.trim()) {
+      const cleanPhone = phone.replace(/\s/g, '');
+      // Ethiopian phone numbers are 9 digits (without country code)
+      if (countryCode === '+251' && !/^[0-9]{9}$/.test(cleanPhone)) {
+        setPhoneError('Phone number must be 9 digits');
+        isValid = false;
+      } else if (!/^[0-9]{7,12}$/.test(cleanPhone)) {
+        setPhoneError('Phone number is invalid');
+        isValid = false;
+      } else {
+        setPhoneError('');
+      }
     } else {
       setPhoneError('');
     }
@@ -156,19 +166,30 @@ export default function RegisterScreen() {
             </View>
             {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
             
-            <View style={styles.inputContainer}>
-              <View style={styles.inputIconContainer}>
-                <Phone size={20} color={LightTheme.secondaryText} />
+            <View style={styles.phoneContainer}>
+              <View style={styles.countryCodeContainer}>
+                <Phone size={20} color={LightTheme.secondaryText} style={styles.phoneIcon} />
+                <TextInput
+                  style={styles.countryCodeInput}
+                  value={countryCode}
+                  onChangeText={setCountryCode}
+                  keyboardType="phone-pad"
+                  placeholderTextColor={LightTheme.neutralDark}
+                />
               </View>
-              <TextInput
-                style={styles.input}
-                placeholder="Phone Number (optional)"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                placeholderTextColor={LightTheme.neutralDark}
-              />
+              <View style={styles.phoneInputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="9XXXXXXXX"
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  placeholderTextColor={LightTheme.neutralDark}
+                  maxLength={countryCode === '+251' ? 9 : 12}
+                />
+              </View>
             </View>
+            <Text style={styles.phoneHint}>Optional - Ethiopian format: 9 digits</Text>
             {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
             
             <View style={styles.inputContainer}>
@@ -273,6 +294,49 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: LightTheme.text,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    gap: 12,
+  },
+  countryCodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    borderRadius: 8,
+    height: 56,
+    paddingHorizontal: 12,
+    backgroundColor: LightTheme.white,
+    width: 110,
+  },
+  phoneIcon: {
+    marginRight: 8,
+  },
+  countryCodeInput: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: LightTheme.text,
+    width: 50,
+  },
+  phoneInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: LightTheme.border,
+    borderRadius: 8,
+    height: 56,
+    paddingHorizontal: 16,
+    backgroundColor: LightTheme.white,
+  },
+  phoneHint: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: LightTheme.secondaryText,
+    marginBottom: 16,
+    marginLeft: 4,
   },
   errorText: {
     fontFamily: 'Inter-Regular',
