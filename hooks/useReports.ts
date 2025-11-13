@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Report, ReportCategory, FuelStation } from '@/types';
-import { 
-  createReport, 
-  getReports, 
-  updateReportConfirmations,
-  getBusinesses 
+import {
+  createReport,
+  getReports,
+  confirmReport as confirmReportDB,
+  unconfirmReport,
+  getUserConfirmation,
+  getBusinesses
 } from '@/lib/supabase';
 
 // Mock data for development
@@ -14,7 +16,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'Power outage in Bole area',
     description: 'Electricity has been out since 2 PM. Affecting the entire neighborhood.',
     category: 'light',
-    status: 'confirmed',
+    status: 'open',
     location: { latitude: 9.0320, longitude: 38.7469 },
     address: 'Bole, Addis Ababa',
     timestamp: Date.now() - 3600000, // 1 hour ago
@@ -29,7 +31,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'Water shortage reported',
     description: 'No water supply for the past 6 hours in this area.',
     category: 'water',
-    status: 'pending',
+    status: 'open',
     location: { latitude: 9.0280, longitude: 38.7520 },
     address: 'Kazanchis, Addis Ababa',
     timestamp: Date.now() - 7200000, // 2 hours ago
@@ -43,7 +45,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'Fuel available at Total station',
     description: 'Both gasoline and diesel available with short queue.',
     category: 'fuel',
-    status: 'confirmed',
+    status: 'open',
     location: { latitude: 9.0350, longitude: 38.7400 },
     address: 'Mexico Square, Addis Ababa',
     timestamp: Date.now() - 1800000, // 30 minutes ago
@@ -66,7 +68,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'Teff price increased',
     description: 'Price went up from 45 to 55 birr per kg at local market.',
     category: 'price',
-    status: 'pending',
+    status: 'open',
     location: { latitude: 9.0250, longitude: 38.7550 },
     address: 'Merkato, Addis Ababa',
     timestamp: Date.now() - 5400000, // 1.5 hours ago
@@ -87,8 +89,8 @@ const SAMPLE_REPORTS: Report[] = [
     id: '5',
     title: 'Heavy traffic on Bole Road',
     description: 'Accident near Edna Mall causing major delays.',
-    category: 'traffic',
-    status: 'confirmed',
+    category: 'infrastructure',
+    status: 'open',
     location: { latitude: 9.0180, longitude: 38.7580 },
     address: 'Bole Road, Addis Ababa',
     timestamp: Date.now() - 900000, // 15 minutes ago
@@ -102,7 +104,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'Road construction blocking traffic',
     description: 'Major road work on CMC road, use alternative routes.',
     category: 'infrastructure',
-    status: 'confirmed',
+    status: 'open',
     location: { latitude: 9.0100, longitude: 38.7650 },
     address: 'CMC Road, Addis Ababa',
     timestamp: Date.now() - 10800000, // 3 hours ago
@@ -115,8 +117,8 @@ const SAMPLE_REPORTS: Report[] = [
     id: '7',
     title: 'Garbage overflow near school',
     description: 'Uncollected garbage for over a week, creating health hazard.',
-    category: 'environment',
-    status: 'pending',
+    category: 'other',
+    status: 'open',
     location: { latitude: 9.0400, longitude: 38.7300 },
     address: 'Piassa, Addis Ababa',
     timestamp: Date.now() - 14400000, // 4 hours ago
@@ -129,8 +131,8 @@ const SAMPLE_REPORTS: Report[] = [
     id: '8',
     title: 'Street robbery reported',
     description: 'Multiple incidents reported in this area after dark.',
-    category: 'safety',
-    status: 'confirmed',
+    category: 'security',
+    status: 'open',
     location: { latitude: 9.0150, longitude: 38.7450 },
     address: 'Arat Kilo, Addis Ababa',
     timestamp: Date.now() - 21600000, // 6 hours ago
@@ -144,7 +146,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'No fuel at Shell station',
     description: 'Station ran out of both gasoline and diesel.',
     category: 'fuel',
-    status: 'confirmed',
+    status: 'open',
     location: { latitude: 9.0080, longitude: 38.7620 },
     address: 'Gotera, Addis Ababa',
     timestamp: Date.now() - 3600000, // 1 hour ago
@@ -166,7 +168,7 @@ const SAMPLE_REPORTS: Report[] = [
     title: 'Cooking oil shortage',
     description: 'Most shops in the area are out of cooking oil.',
     category: 'price',
-    status: 'pending',
+    status: 'open',
     location: { latitude: 9.0380, longitude: 38.7480 },
     address: 'Sidist Kilo, Addis Ababa',
     timestamp: Date.now() - 7200000, // 2 hours ago
@@ -242,18 +244,19 @@ export function useReports() {
         title: report.title,
         description: report.description,
         category: report.category,
-        status: 'pending',
+        status: 'open',
         location: report.location,
         address: report.address,
-        timestamp: Date.now(),
         imageUrl: report.imageUrl,
         userId: report.userId,
         anonymous: report.anonymous,
         confirmations: 0,
-        isSponsored: report.isSponsored,
+        isSponsored: false,
         sponsoredBy: report.sponsoredBy,
         expiresAt: report.expiresAt,
         metadata: report.metadata,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       if (!mounted.current) return null;
@@ -311,18 +314,19 @@ export function useReports() {
         title: report.title,
         description: report.description,
         category: report.category,
-        status: 'pending',
+        status: 'open',
         location: report.location,
         address: report.address,
-        timestamp: Date.now(),
         imageUrl: report.imageUrl,
         userId: report.userId,
         anonymous: report.anonymous,
         confirmations: 0,
         isSponsored: true,
         sponsoredBy: report.sponsoredBy,
-        expiresAt: report.expiresAt,
+        expiresAt: report.expiresAt ? new Date(report.expiresAt).toISOString() : undefined,
         metadata: report.metadata,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       if (!mounted.current) return null;
@@ -364,34 +368,37 @@ export function useReports() {
     }
   }, []);
 
-  // Confirm a report
-  const confirmReport = useCallback(async (reportId: string) => {
+  const confirmReport = useCallback(async (reportId: string, userId: string) => {
     try {
       console.log('👍 Confirming report:', reportId);
-      
+
       if (!mounted.current) return false;
 
-      // Update local state immediately
-      setReports(prev => 
-        prev.map(report => 
-          report.id === reportId 
-            ? { 
-                ...report, 
+      // Try to confirm in database
+      const { data, error: confirmError } = await confirmReportDB(reportId, userId);
+
+      if (confirmError) {
+        // Check if already confirmed
+        if (confirmError.code === '23505') {
+          console.log('ℹ️ Report already confirmed by this user');
+          return false;
+        }
+        throw confirmError;
+      }
+
+      // Update local state
+      setReports(prev =>
+        prev.map(report =>
+          report.id === reportId
+            ? {
+                ...report,
                 confirmations: report.confirmations + 1,
-                status: report.confirmations >= 2 ? 'confirmed' : report.status
-              } 
+              }
             : report
         )
       );
 
-      // Try to update database in background
-      try {
-        await updateReportConfirmations(reportId);
-        console.log('✅ Report confirmation updated in database');
-      } catch (dbError) {
-        console.warn('⚠️ Failed to update confirmation in database:', dbError);
-      }
-      
+      console.log('✅ Report confirmation added');
       return true;
     } catch (err: any) {
       if (mounted.current) {

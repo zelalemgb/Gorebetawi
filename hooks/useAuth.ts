@@ -78,7 +78,7 @@ export function useAuth() {
         const { data: newProfile, error: createError } = await createUserProfile(authUser.id, {
           email: authUser.email!,
           name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
-          role: 'observer',
+          role: 'citizen',
           preferences: {},
         });
         

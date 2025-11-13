@@ -156,7 +156,7 @@ export function useBusiness() {
   }, [businesses]);
 
   const getVerifiedBusinessesByCategory = useCallback((category: ReportCategory) => {
-    return businesses.filter(b => b.status === 'verified' && b.category === category);
+    return businesses.filter(b => b.status === 'approved' && b.category === category);
   }, [businesses]);
 
   return {
