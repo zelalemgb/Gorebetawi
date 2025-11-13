@@ -266,6 +266,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flexGrow: 1,
     paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   header: {
     flexDirection: 'row',
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 24,
-    height: 56,
+    width: '100%',
   },
   footer: {
     flexDirection: 'row',
