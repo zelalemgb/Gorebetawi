@@ -64,28 +64,6 @@ const CATEGORIES: {
   };
 }[] = [
   {
-    key: 'light',
-    title: 'Light Outage',
-    icon: <Lightbulb size={24} color={Colors.light} />,
-    color: Colors.light,
-    descriptions: [
-      'Street light is off',
-      'Entire area blackout',
-      'Intermittent outage'
-    ]
-  },
-  {
-    key: 'water',
-    title: 'Water Outage',
-    icon: <Droplet size={24} color={Colors.water} />,
-    color: Colors.water,
-    descriptions: [
-      'No water since this morning',
-      'Low pressure',
-      'Ongoing problem for days'
-    ]
-  },
-  {
     key: 'fuel',
     title: 'Fuel Availability',
     icon: <Fuel size={24} color={Colors.fuel} />,
