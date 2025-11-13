@@ -61,7 +61,7 @@ export async function createUserProfile(userId: string, data: {
   email: string;
   name?: string;
   phone?: string;
-  role?: 'citizen' | 'business' | 'admin';
+  role?: 'citizen' | 'business' | 'admin' | 'observer' | 'reporter' | 'verifier' | 'partner';
   preferences?: any;
 }) {
   console.log('📝 Creating user profile in database:', { userId, email: data.email, phone: data.phone });
@@ -93,7 +93,7 @@ export async function createUserProfile(userId: string, data: {
 export async function updateUserProfile(userId: string, data: {
   name?: string;
   phone?: string;
-  role?: 'citizen' | 'business' | 'admin';
+  role?: 'citizen' | 'business' | 'admin' | 'observer' | 'reporter' | 'verifier' | 'partner';
   preferences?: any;
 }) {
   console.log('📝 Updating user profile:', { userId, ...data });

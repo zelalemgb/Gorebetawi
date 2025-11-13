@@ -34,8 +34,8 @@ export default function RoleSelectionScreen() {
       icon: <AlertTriangle size={24} color={LightTheme.accent} />
     },
     {
-      key: 'validator',
-      title: 'Validator',
+      key: 'verifier',
+      title: 'Verifier',
       description: 'Help confirm the accuracy of reports in your area',
       icon: <Shield size={24} color={LightTheme.accent} />
     },

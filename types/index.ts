@@ -11,7 +11,7 @@ export type ReportCategory =
 
 export type ReportStatus = 'open' | 'in_progress' | 'resolved' | 'rejected';
 
-export type UserRole = 'citizen' | 'business' | 'admin';
+export type UserRole = 'citizen' | 'business' | 'admin' | 'observer' | 'reporter' | 'verifier' | 'partner';
 
 export type BusinessType = 'gas_station' | 'water_supplier' | 'other';
 
