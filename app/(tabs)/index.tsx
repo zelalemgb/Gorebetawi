@@ -373,6 +373,7 @@ export default function MapScreen() {
         <ReportFormModal
           visible={reportFormVisible}
           onClose={handleCloseReportForm}
+          onLightReportRequest={() => handleAddReport('light')}
           currentLocation={location ? {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,

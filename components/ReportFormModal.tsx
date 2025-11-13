@@ -25,6 +25,7 @@ import { ReportCategory, PriceDetails, FuelStation } from '@/types';
 interface ReportFormModalProps {
   visible: boolean;
   onClose: () => void;
+  onLightReportRequest?: () => void;
   currentLocation?: {
     latitude: number;
     longitude: number;
@@ -180,9 +181,10 @@ const CATEGORIES: {
   }
 ];
 
-export default function ReportFormModal({ 
-  visible, 
+export default function ReportFormModal({
+  visible,
   onClose,
+  onLightReportRequest,
   currentLocation
 }: ReportFormModalProps) {
   const { addReport, loading, getNearbyFuelStations } = useReports();
@@ -267,14 +269,39 @@ export default function ReportFormModal({
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
 
+  const handleLightReportPress = () => {
+    if (onLightReportRequest) {
+      onClose();
+      setTimeout(() => {
+        onLightReportRequest();
+      }, 300);
+    } else {
+      setCategory('light');
+    }
+  };
+
   const renderCategoryGrid = () => (
     <View style={styles.categoryGrid}>
+      <TouchableOpacity
+        style={styles.lightReportButton}
+        onPress={handleLightReportPress}
+        activeOpacity={0.85}
+      >
+        <View style={styles.lightReportIconContainer}>
+          <Lightbulb size={32} color="#FFFFFF" strokeWidth={2.5} />
+        </View>
+        <View style={styles.lightReportTextContainer}>
+          <Text style={styles.lightReportTitle}>Light is Off</Text>
+          <Text style={styles.lightReportSubtitle}>Quick report for power outage</Text>
+        </View>
+      </TouchableOpacity>
+
       {CATEGORIES.map((cat) => (
         <TouchableOpacity
           key={cat.key}
           style={[
             styles.categoryButton,
-            category === cat.key && { 
+            category === cat.key && {
               borderColor: cat.color,
               backgroundColor: `${cat.color}10`
             }
@@ -557,6 +584,43 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     padding: 16,
     gap: 12,
+  },
+  lightReportButton: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FDB022',
+    borderRadius: 16,
+    marginBottom: 8,
+    shadowColor: 'rgba(253, 176, 34, 0.4)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  lightReportIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  lightReportTextContainer: {
+    flex: 1,
+  },
+  lightReportTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    color: LightTheme.white,
+    marginBottom: 4,
+  },
+  lightReportSubtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   categoryButton: {
     width: '48%',
