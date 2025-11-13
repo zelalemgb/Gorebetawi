@@ -98,10 +98,16 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     console.log('🚀 Register button clicked');
-    
-    if (validateForm()) {
+    console.log('📋 Form data:', { name, email, phone, password: '***', confirmPassword: '***' });
+
+    const isValid = validateForm();
+    console.log('✅ Form validation result:', isValid);
+
+    if (isValid) {
       console.log('📝 Starting registration process for:', email);
       const success = await signUp(email, password, name.trim());
+      console.log('📊 SignUp result:', success);
+
       if (success) {
         console.log('✅ Registration successful, navigating to role selection');
         router.push('/auth/role-selection');
@@ -110,6 +116,7 @@ export default function RegisterScreen() {
       }
     } else {
       console.log('❌ Form validation failed');
+      console.log('❌ Errors:', { nameError, emailError, phoneError, passwordError, confirmPasswordError });
     }
   };
 
@@ -226,7 +233,10 @@ export default function RegisterScreen() {
 
             <AppButton
               title="Create Account"
-              onPress={handleRegister}
+              onPress={() => {
+                console.log('🔵 Button press detected!');
+                handleRegister();
+              }}
               loading={loading}
               disabled={loading}
               style={styles.button}
