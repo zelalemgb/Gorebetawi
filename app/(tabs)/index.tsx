@@ -19,6 +19,7 @@ import CategoryIconToolbar from '@/components/CategoryIconToolbar';
 import TrendInsightBubble from '@/components/TrendInsightBubble';
 import EmptyStateMessage from '@/components/EmptyStateMessage';
 import LightReportModal from '@/components/LightReportModal';
+import WaterReportModal from '@/components/WaterReportModal';
 import QuickLightReportButton from '@/components/QuickLightReportButton';
 
 export default function MapScreen() {
@@ -42,6 +43,7 @@ export default function MapScreen() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reportFormVisible, setReportFormVisible] = useState(false);
   const [lightReportVisible, setLightReportVisible] = useState(false);
+  const [waterReportVisible, setWaterReportVisible] = useState(false);
   const [highlightedReports, setHighlightedReports] = useState<Report[]>([]);
   
   const headerAnimation = useRef(new Animated.Value(0)).current;
@@ -172,9 +174,11 @@ export default function MapScreen() {
       return;
     }
 
-    // Use simplified light report modal for light category
+    // Use simplified modals for light and water categories
     if (category === 'light') {
       setLightReportVisible(true);
+    } else if (category === 'water') {
+      setWaterReportVisible(true);
     } else {
       setReportFormVisible(true);
     }
@@ -192,6 +196,11 @@ export default function MapScreen() {
 
   const handleCloseLightReport = () => {
     setLightReportVisible(false);
+    trackInteraction();
+  };
+
+  const handleCloseWaterReport = () => {
+    setWaterReportVisible(false);
     trackInteraction();
   };
 
@@ -374,6 +383,7 @@ export default function MapScreen() {
           visible={reportFormVisible}
           onClose={handleCloseReportForm}
           onLightReportRequest={() => handleAddReport('light')}
+          onWaterReportRequest={() => handleAddReport('water')}
           currentLocation={location ? {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
@@ -386,6 +396,18 @@ export default function MapScreen() {
         <LightReportModal
           visible={lightReportVisible}
           onClose={handleCloseLightReport}
+          currentLocation={location ? {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          } : undefined}
+        />
+      )}
+
+      {/* Water Report Modal */}
+      {waterReportVisible && (
+        <WaterReportModal
+          visible={waterReportVisible}
+          onClose={handleCloseWaterReport}
           currentLocation={location ? {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,

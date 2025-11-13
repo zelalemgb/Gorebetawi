@@ -26,6 +26,7 @@ interface ReportFormModalProps {
   visible: boolean;
   onClose: () => void;
   onLightReportRequest?: () => void;
+  onWaterReportRequest?: () => void;
   currentLocation?: {
     latitude: number;
     longitude: number;
@@ -185,6 +186,7 @@ export default function ReportFormModal({
   visible,
   onClose,
   onLightReportRequest,
+  onWaterReportRequest,
   currentLocation
 }: ReportFormModalProps) {
   const { addReport, loading, getNearbyFuelStations } = useReports();
@@ -280,21 +282,48 @@ export default function ReportFormModal({
     }
   };
 
+  const handleWaterReportPress = () => {
+    if (onWaterReportRequest) {
+      onClose();
+      setTimeout(() => {
+        onWaterReportRequest();
+      }, 300);
+    } else {
+      setCategory('water');
+    }
+  };
+
   const renderCategoryGrid = () => (
     <View style={styles.categoryGrid}>
-      <TouchableOpacity
-        style={styles.lightReportButton}
-        onPress={handleLightReportPress}
-        activeOpacity={0.85}
-      >
-        <View style={styles.lightReportIconContainer}>
-          <Lightbulb size={32} color="#FFFFFF" strokeWidth={2.5} />
-        </View>
-        <View style={styles.lightReportTextContainer}>
-          <Text style={styles.lightReportTitle}>Light is Off</Text>
-          <Text style={styles.lightReportSubtitle}>Quick report for power outage</Text>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.quickReportsRow}>
+        <TouchableOpacity
+          style={styles.lightReportButton}
+          onPress={handleLightReportPress}
+          activeOpacity={0.85}
+        >
+          <View style={styles.lightReportIconContainer}>
+            <Lightbulb size={28} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
+          <View style={styles.lightReportTextContainer}>
+            <Text style={styles.lightReportTitle}>Light is Off</Text>
+            <Text style={styles.lightReportSubtitle}>Power outage</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.waterReportButton}
+          onPress={handleWaterReportPress}
+          activeOpacity={0.85}
+        >
+          <View style={styles.waterReportIconContainer}>
+            <Droplet size={28} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
+          <View style={styles.waterReportTextContainer}>
+            <Text style={styles.waterReportTitle}>Water is Off</Text>
+            <Text style={styles.waterReportSubtitle}>Water outage</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
 
       {CATEGORIES.map((cat) => (
         <TouchableOpacity
@@ -585,42 +614,87 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
-  lightReportButton: {
+  quickReportsRow: {
     width: '100%',
     flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  lightReportButton: {
+    flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
     backgroundColor: '#FDB022',
     borderRadius: 16,
-    marginBottom: 8,
     shadowColor: 'rgba(253, 176, 34, 0.4)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
   },
+  waterReportButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#2196F3',
+    borderRadius: 16,
+    shadowColor: 'rgba(33, 150, 243, 0.4)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
   lightReportIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 12,
+  },
+  waterReportIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   lightReportTextContainer: {
-    flex: 1,
+    alignItems: 'center',
+  },
+  waterReportTextContainer: {
+    alignItems: 'center',
   },
   lightReportTitle: {
     fontFamily: 'Inter-Bold',
-    fontSize: 18,
+    fontSize: 16,
     color: LightTheme.white,
-    marginBottom: 4,
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  waterReportTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    color: LightTheme.white,
+    marginBottom: 2,
+    textAlign: 'center',
   },
   lightReportSubtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
+  },
+  waterReportSubtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
   },
   categoryButton: {
     width: '48%',
