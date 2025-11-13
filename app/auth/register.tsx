@@ -347,7 +347,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   button: {
-    marginTop: 8,
+    marginTop: 24,
+    height: 56,
   },
   footer: {
     flexDirection: 'row',

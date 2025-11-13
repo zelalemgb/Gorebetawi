@@ -171,19 +171,23 @@ const styles = StyleSheet.create({
   },
   mediumButton: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 16,
+    minHeight: 48,
   },
   largeButton: {
     paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingVertical: 18,
+    minHeight: 56,
   },
   smallText: {
     fontSize: 12,
   },
   mediumText: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '600',
   },
   largeText: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
