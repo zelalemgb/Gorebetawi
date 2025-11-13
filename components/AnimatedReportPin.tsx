@@ -78,14 +78,15 @@ export default function AnimatedReportPin({
   const highlightScale = useSharedValue(1);
   
   // Determine if report is fresh (< 2 hours)
-  const isFresh = Date.now() - report.timestamp < 7200000;
-  
+  const reportDate = new Date(report.createdAt).getTime();
+  const isFresh = Date.now() - reportDate < 7200000;
+
   // Determine if report is ongoing
-  const isOngoing = report.metadata?.duration === 'ongoing' || 
-                   (report.category === 'traffic' && report.metadata?.severity === 'heavy');
-  
+  const isOngoing = report.metadata?.duration === 'ongoing' ||
+                   (report.category === 'infrastructure' && report.metadata?.severity === 'heavy');
+
   // Determine if report is expired
-  const isExpired = report.expiresAt ? Date.now() > report.expiresAt : false;
+  const isExpired = report.expiresAt ? new Date(report.expiresAt).getTime() < Date.now() : false;
 
   useEffect(() => {
     // Fresh report animation - ping + drop-in + glow
@@ -265,8 +266,12 @@ export default function AnimatedReportPin({
         )}
         
         {/* Status indicators */}
-        {report.status === 'confirmed' && (
+        {report.status === 'resolved' && (
           <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
+        )}
+
+        {report.status === 'in_progress' && (
+          <View style={[styles.statusDot, { backgroundColor: '#48bb78' }]} />
         )}
         
         {isExpired && (

@@ -139,7 +139,7 @@ export default function CategoryIconToolbar({
 
       // Check for recent reports (within 3 hours)
       const threeHoursAgo = Date.now() - 10800000;
-      const hasRecent = nearbyReports.some(report => report.timestamp > threeHoursAgo);
+      const hasRecent = nearbyReports.some(report => new Date(report.createdAt).getTime() > threeHoursAgo);
 
       // Find closest distance
       const closestDistance = nearbyReports.length > 0 

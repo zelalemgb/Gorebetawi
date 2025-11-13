@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { MapContainer, TileLayer, Marker, useMap, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import { Report } from '@/types';
 import { Colors } from '@/constants/Colors';
 import L from 'leaflet';
@@ -250,11 +250,12 @@ export default function WebMapComponentClient({
           const icon = getCategoryIcon(report.category);
           const isSelected = selectedReport?.id === report.id;
           const isHighlighted = highlightedReports.some(hr => hr.id === report.id);
-          const isFresh = Date.now() - report.timestamp < 7200000; // < 2 hours
+          const reportDate = new Date(report.createdAt).getTime();
+          const isFresh = Date.now() - reportDate < 7200000; // < 2 hours
           const isOngoing = report.metadata?.duration === 'ongoing';
-          const isExpired = report.expiresAt ? Date.now() > report.expiresAt : false;
+          const isExpired = report.expiresAt ? new Date(report.expiresAt).getTime() < Date.now() : false;
           const isSponsored = report.isSponsored;
-          const isVerified = report.status === 'confirmed';
+          const isVerified = report.status === 'resolved';
           
           // Hide filtered out reports completely
           const isFiltered = filteredCategories && filteredCategories.length > 0 && !filteredCategories.includes(report.category);
@@ -374,7 +375,7 @@ export default function WebMapComponentClient({
                     ` : ''}
                     
                     <!-- Enhanced status indicators -->
-                    ${report.status === 'confirmed' ? `
+                    ${report.status === 'in_progress' ? `
                       <div style="
                         position: absolute;
                         bottom: -2px;

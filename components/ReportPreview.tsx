@@ -36,7 +36,7 @@ export default function ReportPreview({
     }
   };
   
-  const timeAgo = formatDistanceToNow(report.timestamp);
+  const timeAgo = formatDistanceToNow(new Date(report.createdAt).getTime());
 
   return (
     <View style={[styles.container, style]}>

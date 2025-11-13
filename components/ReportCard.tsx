@@ -14,13 +14,13 @@ interface ReportCardProps {
 export default function ReportCard({ report, onPress, style }: ReportCardProps) {
   const getCategoryIcon = (category: ReportCategory) => {
     switch (category) {
-      case 'safety':
+      case 'security':
         return <AlertTriangle size={20} color={Colors.safety} />;
       case 'fuel':
         return <Droplet size={20} color={Colors.fuel} />;
       case 'price':
         return <DollarSign size={20} color={Colors.price} />;
-      case 'environment':
+      case 'health':
         return <Leaf size={20} color={Colors.environment} />;
       default:
         return <AlertTriangle size={20} color={Colors.safety} />;
@@ -31,7 +31,7 @@ export default function ReportCard({ report, onPress, style }: ReportCardProps) 
     return category.charAt(0).toUpperCase() + category.slice(1);
   };
 
-  const timeAgo = formatDistanceToNow(report.timestamp);
+  const timeAgo = formatDistanceToNow(new Date(report.createdAt).getTime());
 
   return (
     <TouchableOpacity 
@@ -45,10 +45,16 @@ export default function ReportCard({ report, onPress, style }: ReportCardProps) 
           <Text style={styles.category}>{getCategoryName(report.category)}</Text>
         </View>
         <View style={styles.statusContainer}>
-          {report.status === 'confirmed' && (
+          {report.status === 'resolved' && (
             <View style={styles.badge}>
               <Check size={12} color={LightTheme.white} />
-              <Text style={styles.badgeText}>Confirmed</Text>
+              <Text style={styles.badgeText}>Resolved</Text>
+            </View>
+          )}
+          {report.status === 'in_progress' && (
+            <View style={[styles.badge, { backgroundColor: '#48bb78' }]}>
+              <Clock size={12} color={LightTheme.white} />
+              <Text style={styles.badgeText}>In Progress</Text>
             </View>
           )}
         </View>
