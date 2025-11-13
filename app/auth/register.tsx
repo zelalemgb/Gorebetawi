@@ -106,7 +106,8 @@ export default function RegisterScreen() {
 
     if (isValid) {
       console.log('📝 Starting registration process for:', email);
-      const success = await signUp(email, password, name.trim());
+      const fullPhone = phone.trim() ? `${countryCode}${phone.trim()}` : undefined;
+      const success = await signUp(email, password, name.trim(), fullPhone);
       console.log('📊 SignUp result:', success);
 
       if (success) {

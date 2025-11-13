@@ -60,10 +60,11 @@ export async function getSession() {
 export async function createUserProfile(userId: string, data: {
   email: string;
   name?: string;
+  phone?: string;
   role?: 'citizen' | 'business' | 'admin';
   preferences?: any;
 }) {
-  console.log('📝 Creating user profile in database:', { userId, email: data.email });
+  console.log('📝 Creating user profile in database:', { userId, email: data.email, phone: data.phone });
 
   const { data: profile, error } = await supabase
     .from('users')
@@ -71,6 +72,7 @@ export async function createUserProfile(userId: string, data: {
       id: userId,
       email: data.email,
       name: data.name || null,
+      phone: data.phone || null,
       role: data.role || 'citizen',
       preferences: data.preferences || {},
     }, {
@@ -90,6 +92,7 @@ export async function createUserProfile(userId: string, data: {
 
 export async function updateUserProfile(userId: string, data: {
   name?: string;
+  phone?: string;
   role?: 'citizen' | 'business' | 'admin';
   preferences?: any;
 }) {

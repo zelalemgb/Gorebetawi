@@ -148,13 +148,13 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, name?: string) => {
+  const signUp = async (email: string, password: string, name?: string, phone?: string) => {
     try {
       setLoading(true);
       setError(null);
 
       console.log('📝 Attempting to sign up user:', email);
-      console.log('📝 Sign up data:', { email, passwordLength: password.length, name });
+      console.log('📝 Sign up data:', { email, passwordLength: password.length, name, phone });
 
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timeout - please try again')), 30000)
@@ -177,19 +177,20 @@ export function useAuth() {
       if (data.user) {
         console.log('✅ User created successfully:', data.user.email);
 
-        // Update user metadata with name if provided
-        if (name) {
-          console.log('📝 Updating user metadata with name:', name);
+        // Update user profile with name and phone if provided
+        if (name || phone) {
+          console.log('📝 Updating user profile with name and phone');
           try {
-            const { error: updateError } = await supabase.auth.updateUser({
-              data: { name }
+            const { error: updateError } = await updateUserProfile(data.user.id, {
+              name: name || undefined,
+              phone: phone || undefined,
             });
 
             if (updateError) {
-              console.error('⚠️ Error updating user metadata:', updateError);
+              console.error('⚠️ Error updating user profile:', updateError);
             }
           } catch (updateErr) {
-            console.error('⚠️ Error updating user metadata:', updateErr);
+            console.error('⚠️ Error updating user profile:', updateErr);
           }
         }
       }
