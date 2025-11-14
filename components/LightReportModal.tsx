@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 import { X, Lightbulb, MapPin, Navigation } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
-import { useReports } from '@/hooks/useReports';
 import { useLocation } from '@/hooks/useLocation';
 import { useAuth } from '@/hooks/useAuth';
 
 interface LightReportModalProps {
   visible: boolean;
   onClose: () => void;
+  onReportSubmit: (report: any) => Promise<string | null>;
   currentLocation?: {
     latitude: number;
     longitude: number;
@@ -26,9 +26,9 @@ interface LightReportModalProps {
 export default function LightReportModal({
   visible,
   onClose,
+  onReportSubmit,
   currentLocation: initialLocation
 }: LightReportModalProps) {
-  const { addReport, loading: reportLoading } = useReports();
   const { getAddressFromCoordinates, getCurrentLocation } = useLocation();
   const { user } = useAuth();
 
@@ -134,7 +134,7 @@ export default function LightReportModal({
           }
         };
 
-        await addReport(reportData);
+        await onReportSubmit(reportData);
 
         setTimeout(() => {
           onClose();

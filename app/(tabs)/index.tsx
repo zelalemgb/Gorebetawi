@@ -24,7 +24,7 @@ import QuickLightReportButton from '@/components/QuickLightReportButton';
 
 export default function MapScreen() {
   const router = useRouter();
-  const { reports, loading, error, confirmReport, filterReportsByCategory } = useReports();
+  const { reports, loading, error, confirmReport, filterReportsByCategory, addReport } = useReports();
   const { location, loading: locationLoading, errorMsg: locationError } = useLocation();
   const { user } = useAuth();
   const { 
@@ -396,6 +396,7 @@ export default function MapScreen() {
         <LightReportModal
           visible={lightReportVisible}
           onClose={handleCloseLightReport}
+          onReportSubmit={addReport}
           currentLocation={location ? {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
@@ -407,6 +408,7 @@ export default function MapScreen() {
       {waterReportVisible && (
         <WaterReportModal
           visible={waterReportVisible}
+          onReportSubmit={addReport}
           onClose={handleCloseWaterReport}
           currentLocation={location ? {
             latitude: location.coords.latitude,
