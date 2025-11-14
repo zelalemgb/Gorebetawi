@@ -35,6 +35,7 @@ export default function LightReportModal({
   const [location, setLocation] = useState(initialLocation);
   const [address, setAddress] = useState<string | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [lightOn, setLightOn] = useState(true);
 
   const brightnessAnim = useRef(new Animated.Value(1)).current;
@@ -115,6 +116,7 @@ export default function LightReportModal({
       return;
     }
 
+    setSubmitting(true);
     animateLightOff();
 
     setTimeout(async () => {
@@ -137,10 +139,12 @@ export default function LightReportModal({
         await onReportSubmit(reportData);
 
         setTimeout(() => {
+          setSubmitting(false);
           onClose();
         }, 500);
       } catch (error) {
         console.error('Error submitting report:', error);
+        setSubmitting(false);
       }
     }, 800);
   };
@@ -250,13 +254,13 @@ export default function LightReportModal({
             <TouchableOpacity
               style={[
                 styles.reportButton,
-                (!location || reportLoading || !lightOn) && styles.reportButtonDisabled
+                (!location || submitting || !lightOn) && styles.reportButtonDisabled
               ]}
               onPress={handleSubmit}
-              disabled={!location || reportLoading || !lightOn}
+              disabled={!location || submitting || !lightOn}
               activeOpacity={0.8}
             >
-              {reportLoading ? (
+              {submitting ? (
                 <ActivityIndicator size="small" color={LightTheme.white} />
               ) : (
                 <>

@@ -35,6 +35,7 @@ export default function WaterReportModal({
   const [location, setLocation] = useState(initialLocation);
   const [address, setAddress] = useState<string | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [waterOn, setWaterOn] = useState(true);
 
   const flowAnim = useRef(new Animated.Value(1)).current;
@@ -115,6 +116,7 @@ export default function WaterReportModal({
       return;
     }
 
+    setSubmitting(true);
     animateWaterOff();
 
     setTimeout(async () => {
@@ -137,10 +139,12 @@ export default function WaterReportModal({
         await onReportSubmit(reportData);
 
         setTimeout(() => {
+          setSubmitting(false);
           onClose();
         }, 500);
       } catch (error) {
         console.error('Error submitting report:', error);
+        setSubmitting(false);
       }
     }, 800);
   };
@@ -250,13 +254,13 @@ export default function WaterReportModal({
             <TouchableOpacity
               style={[
                 styles.reportButton,
-                (!location || reportLoading || !waterOn) && styles.reportButtonDisabled
+                (!location || submitting || !waterOn) && styles.reportButtonDisabled
               ]}
               onPress={handleSubmit}
-              disabled={!location || reportLoading || !waterOn}
+              disabled={!location || submitting || !waterOn}
               activeOpacity={0.8}
             >
-              {reportLoading ? (
+              {submitting ? (
                 <ActivityIndicator size="small" color={LightTheme.white} />
               ) : (
                 <>
