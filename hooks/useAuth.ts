@@ -69,38 +69,59 @@ export function useAuth() {
     try {
       console.log('👤 Handling user session for:', authUser.email);
 
-      // Add timeout to prevent infinite hanging
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile load timeout')), 10000)
-      );
-
       const profilePromise = (async () => {
-        // Try to get existing user profile
-        let { data: profile, error: profileError } = await getUserProfile(authUser.id);
+        // Retry logic for profile retrieval
+        let retries = 3;
+        let delay = 500;
+        let profile = null;
 
-        // If profile doesn't exist, create it (fallback in case trigger didn't work)
-        if (profileError && profileError.code === 'PGRST116') {
-          console.log('📝 Profile not found, creating for:', authUser.email);
-          const { data: newProfile, error: createError } = await createUserProfile(authUser.id, {
-            email: authUser.email!,
-            name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
-            role: 'citizen',
-            preferences: {},
-          });
+        while (retries > 0) {
+          const { data, error: profileError } = await getUserProfile(authUser.id);
 
-          if (createError) {
-            console.error('❌ Error creating user profile:', createError);
-            throw createError;
+          if (data) {
+            profile = data;
+            break;
           }
 
-          profile = newProfile;
-        } else if (profileError) {
-          console.error('❌ Error fetching user profile:', profileError);
-          throw profileError;
+          // If profile doesn't exist after all retries, create it
+          if (profileError?.code === 'PGRST116' && retries === 1) {
+            console.log('📝 Profile not found after retries, creating for:', authUser.email);
+            const { data: newProfile, error: createError } = await createUserProfile(authUser.id, {
+              email: authUser.email!,
+              name: authUser.user_metadata?.name || authUser.user_metadata?.full_name || null,
+              role: 'citizen',
+              preferences: {},
+            });
+
+            if (createError) {
+              console.error('❌ Error creating user profile:', createError);
+              throw createError;
+            }
+
+            profile = newProfile;
+            break;
+          } else if (profileError && profileError.code !== 'PGRST116') {
+            console.error('❌ Error fetching user profile:', profileError);
+            throw profileError;
+          }
+
+          // Wait before retrying
+          if (retries > 1) {
+            console.log(`⏳ Profile not ready, retrying in ${delay}ms... (${retries - 1} retries left)`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2;
+          }
+
+          retries--;
         }
 
         return profile;
       })();
+
+      // Add timeout to prevent infinite hanging
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile load timeout')), 15000)
+      );
 
       const profile = await Promise.race([profilePromise, timeoutPromise]);
 
@@ -113,6 +134,8 @@ export function useAuth() {
           role: (profile as any).role as User['role'],
           preferences: (profile as any).preferences || {},
         });
+      } else {
+        throw new Error('Profile not found after retries');
       }
     } catch (err: any) {
       console.error('❌ Error handling user session:', err);
