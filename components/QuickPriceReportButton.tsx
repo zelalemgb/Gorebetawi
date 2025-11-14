@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Text, ViewStyle } from 'react-native';
-import { Droplet } from 'lucide-react-native';
+import { DollarSign } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import Animated, {
   useSharedValue,
@@ -10,12 +10,12 @@ import Animated, {
   withDelay
 } from 'react-native-reanimated';
 
-interface QuickWaterReportButtonProps {
+interface QuickPriceReportButtonProps {
   onPress: () => void;
   style?: ViewStyle;
 }
 
-export default function QuickWaterReportButton({ onPress, style }: QuickWaterReportButtonProps) {
+export default function QuickPriceReportButton({ onPress, style }: QuickPriceReportButtonProps) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -42,8 +42,8 @@ export default function QuickWaterReportButton({ onPress, style }: QuickWaterRep
         onPress={handlePress}
         activeOpacity={0.9}
       >
-        <Droplet size={16} color={LightTheme.white} strokeWidth={2.5} />
-        <Text style={styles.buttonText}>Water</Text>
+        <DollarSign size={16} color={LightTheme.white} strokeWidth={2.5} />
+        <Text style={styles.buttonText}>Price</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 24,
-    right: 176,
-    shadowColor: 'rgba(33, 150, 243, 0.5)',
+    right: 316,
+    shadowColor: 'rgba(76, 175, 80, 0.5)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4CAF50',
     gap: 4,
   },
   buttonText: {

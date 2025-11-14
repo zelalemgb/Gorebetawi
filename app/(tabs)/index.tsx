@@ -22,6 +22,8 @@ import LightReportModal from '@/components/LightReportModal';
 import WaterReportModal from '@/components/WaterReportModal';
 import QuickLightReportButton from '@/components/QuickLightReportButton';
 import QuickWaterReportButton from '@/components/QuickWaterReportButton';
+import QuickFuelReportButton from '@/components/QuickFuelReportButton';
+import QuickPriceReportButton from '@/components/QuickPriceReportButton';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -375,11 +377,11 @@ export default function MapScreen() {
       {/* Add Report Button */}
       <FloatingActionButton onPress={handleAddReport} />
 
-      {/* Quick Light Report Button */}
-      <QuickLightReportButton onPress={() => handleAddReport('light')} />
-
-      {/* Quick Water Report Button */}
+      {/* Quick Report Buttons */}
+      <QuickPriceReportButton onPress={() => handleAddReport('price')} />
+      <QuickFuelReportButton onPress={() => handleAddReport('fuel')} />
       <QuickWaterReportButton onPress={() => handleAddReport('water')} />
+      <QuickLightReportButton onPress={() => handleAddReport('light')} />
       
       {/* Report Form Modal */}
       {reportFormVisible && (
