@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 24,
-    right: 176,
+    right: 158,
     shadowColor: 'rgba(33, 150, 243, 0.5)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
