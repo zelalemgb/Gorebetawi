@@ -21,6 +21,7 @@ import EmptyStateMessage from '@/components/EmptyStateMessage';
 import LightReportModal from '@/components/LightReportModal';
 import WaterReportModal from '@/components/WaterReportModal';
 import QuickLightReportButton from '@/components/QuickLightReportButton';
+import QuickWaterReportButton from '@/components/QuickWaterReportButton';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -376,6 +377,9 @@ export default function MapScreen() {
 
       {/* Quick Light Report Button */}
       <QuickLightReportButton onPress={() => handleAddReport('light')} />
+
+      {/* Quick Water Report Button */}
+      <QuickWaterReportButton onPress={() => handleAddReport('water')} />
       
       {/* Report Form Modal */}
       {reportFormVisible && (
