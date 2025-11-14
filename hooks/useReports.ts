@@ -214,23 +214,81 @@ const SAMPLE_FUEL_STATIONS: FuelStation[] = [
 ];
 
 export function useReports() {
-  const [reports, setReports] = useState<Report[]>(SAMPLE_REPORTS);
-  const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(true);
 
-  // Initialize with mock data
+  // Fetch reports from database on mount
   useEffect(() => {
-    setReports(SAMPLE_REPORTS);
-    setLoading(false);
-    setError(null);
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('📊 Fetching reports from database...');
+
+        const { data, error: fetchError } = await getReports();
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        if (!mounted.current) return;
+
+        if (data && data.length > 0) {
+          // Transform database reports to match Report type
+          const transformedReports: Report[] = data.map((dbReport: any) => ({
+            id: dbReport.id,
+            title: dbReport.title,
+            description: dbReport.description || '',
+            category: dbReport.category,
+            status: dbReport.status || 'open',
+            location: {
+              latitude: dbReport.location.coordinates[1],
+              longitude: dbReport.location.coordinates[0],
+            },
+            address: dbReport.address,
+            imageUrl: dbReport.image_url,
+            userId: dbReport.user_id,
+            anonymous: dbReport.anonymous ?? false,
+            confirmations: dbReport.confirmations ?? 0,
+            isSponsored: dbReport.is_sponsored ?? false,
+            sponsoredBy: dbReport.sponsored_by,
+            expiresAt: dbReport.expires_at,
+            metadata: dbReport.metadata || {},
+            createdAt: dbReport.created_at,
+            updatedAt: dbReport.updated_at,
+          }));
+
+          setReports(transformedReports);
+          console.log(`✅ Loaded ${transformedReports.length} reports from database`);
+        } else {
+          // Use sample reports if database is empty
+          setReports(SAMPLE_REPORTS);
+          console.log('ℹ️ No reports in database, using sample data');
+        }
+      } catch (err: any) {
+        console.error('❌ Error fetching reports:', err);
+        if (mounted.current) {
+          setError(err.message || 'Failed to fetch reports');
+          // Fallback to sample data on error
+          setReports(SAMPLE_REPORTS);
+        }
+      } finally {
+        if (mounted.current) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchReports();
 
     return () => {
       mounted.current = false;
     };
   }, []);
 
-  // Add a new report (with database backup)
+  // Add a new report
   const addReport = useCallback(async (report: Omit<Report, 'id' | 'timestamp' | 'confirmations'> & { userId: string }) => {
     try {
       setLoading(true);
@@ -238,49 +296,52 @@ export function useReports() {
 
       console.log('📝 Creating new report...');
 
-      // Create new report with mock ID
-      const newReport: Report = {
-        id: `report_${Date.now()}`,
+      // Save to database first
+      const { data: dbReport, error: dbError } = await createReport({
         title: report.title,
         description: report.description,
         category: report.category,
-        status: 'open',
-        location: report.location,
+        location: [report.location.longitude, report.location.latitude],
         address: report.address,
-        imageUrl: report.imageUrl,
-        userId: report.userId,
+        image_url: report.imageUrl,
+        user_id: report.userId,
         anonymous: report.anonymous,
-        confirmations: 0,
-        isSponsored: false,
-        sponsoredBy: report.sponsoredBy,
-        expiresAt: report.expiresAt,
         metadata: report.metadata,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      });
+
+      if (dbError) {
+        throw dbError;
+      }
 
       if (!mounted.current) return null;
 
-      // Add to local state immediately
-      setReports(prev => [newReport, ...prev]);
+      // Transform database report to local format
+      const newReport: Report = {
+        id: dbReport.id,
+        title: dbReport.title,
+        description: dbReport.description || '',
+        category: dbReport.category,
+        status: dbReport.status || 'open',
+        location: {
+          latitude: dbReport.location.coordinates[1],
+          longitude: dbReport.location.coordinates[0],
+        },
+        address: dbReport.address,
+        imageUrl: dbReport.image_url,
+        userId: dbReport.user_id,
+        anonymous: dbReport.anonymous ?? false,
+        confirmations: dbReport.confirmations ?? 0,
+        isSponsored: dbReport.is_sponsored ?? false,
+        sponsoredBy: dbReport.sponsored_by,
+        expiresAt: dbReport.expires_at,
+        metadata: dbReport.metadata || {},
+        createdAt: dbReport.created_at,
+        updatedAt: dbReport.updated_at,
+      };
 
-      // Try to save to database in background
-      try {
-        await createReport({
-          title: report.title,
-          description: report.description,
-          category: report.category,
-          location: [report.location.longitude, report.location.latitude],
-          address: report.address,
-          image_url: report.imageUrl,
-          user_id: report.userId,
-          anonymous: report.anonymous,
-          metadata: report.metadata,
-        });
-        console.log('✅ Report saved to database');
-      } catch (dbError) {
-        console.warn('⚠️ Failed to save to database, using local storage:', dbError);
-      }
+      // Add to local state
+      setReports(prev => [newReport, ...prev]);
+      console.log('✅ Report saved to database and added to local state');
 
       return newReport.id;
     } catch (err: any) {
@@ -298,7 +359,7 @@ export function useReports() {
 
   // Add a sponsored report
   const addSponsoredReport = useCallback(async (
-    report: Omit<Report, 'id' | 'timestamp' | 'confirmations'> & { 
+    report: Omit<Report, 'id' | 'timestamp' | 'confirmations'> & {
       sponsoredBy: string;
       expiresAt: number;
     }
@@ -309,50 +370,55 @@ export function useReports() {
 
       console.log('📝 Creating sponsored report...');
 
-      const newReport: Report = {
-        id: `sponsored_${Date.now()}`,
+      // Save to database first
+      const { data: dbReport, error: dbError } = await createReport({
         title: report.title,
         description: report.description,
         category: report.category,
-        status: 'open',
-        location: report.location,
+        location: [report.location.longitude, report.location.latitude],
         address: report.address,
-        imageUrl: report.imageUrl,
-        userId: report.userId,
+        image_url: report.imageUrl,
+        user_id: report.userId,
         anonymous: report.anonymous,
-        confirmations: 0,
-        isSponsored: true,
-        sponsoredBy: report.sponsoredBy,
-        expiresAt: report.expiresAt ? new Date(report.expiresAt).toISOString() : undefined,
+        is_sponsored: true,
+        sponsored_by: report.sponsoredBy,
+        expires_at: new Date(report.expiresAt).toISOString(),
         metadata: report.metadata,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      });
+
+      if (dbError) {
+        throw dbError;
+      }
 
       if (!mounted.current) return null;
 
-      setReports(prev => [newReport, ...prev]);
+      // Transform database report to local format
+      const newReport: Report = {
+        id: dbReport.id,
+        title: dbReport.title,
+        description: dbReport.description || '',
+        category: dbReport.category,
+        status: dbReport.status || 'open',
+        location: {
+          latitude: dbReport.location.coordinates[1],
+          longitude: dbReport.location.coordinates[0],
+        },
+        address: dbReport.address,
+        imageUrl: dbReport.image_url,
+        userId: dbReport.user_id,
+        anonymous: dbReport.anonymous ?? false,
+        confirmations: dbReport.confirmations ?? 0,
+        isSponsored: dbReport.is_sponsored ?? false,
+        sponsoredBy: dbReport.sponsored_by,
+        expiresAt: dbReport.expires_at,
+        metadata: dbReport.metadata || {},
+        createdAt: dbReport.created_at,
+        updatedAt: dbReport.updated_at,
+      };
 
-      // Try to save to database in background
-      try {
-        await createReport({
-          title: report.title,
-          description: report.description,
-          category: report.category,
-          location: [report.location.longitude, report.location.latitude],
-          address: report.address,
-          image_url: report.imageUrl,
-          user_id: report.userId,
-          anonymous: report.anonymous,
-          is_sponsored: true,
-          sponsored_by: report.sponsoredBy,
-          expires_at: new Date(report.expiresAt).toISOString(),
-          metadata: report.metadata,
-        });
-        console.log('✅ Sponsored report saved to database');
-      } catch (dbError) {
-        console.warn('⚠️ Failed to save sponsored report to database:', dbError);
-      }
+      // Add to local state
+      setReports(prev => [newReport, ...prev]);
+      console.log('✅ Sponsored report saved to database and added to local state');
 
       return newReport.id;
     } catch (err: any) {
@@ -442,16 +508,61 @@ export function useReports() {
     }
   }, []);
 
-  // Refresh reports (reload mock data)
+  // Refresh reports from database
   const refreshReports = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    // Simulate network delay
-    setTimeout(() => {
-      setReports(SAMPLE_REPORTS);
-      setLoading(false);
-    }, 500);
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('🔄 Refreshing reports from database...');
+
+      const { data, error: fetchError } = await getReports();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (!mounted.current) return;
+
+      if (data && data.length > 0) {
+        const transformedReports: Report[] = data.map((dbReport: any) => ({
+          id: dbReport.id,
+          title: dbReport.title,
+          description: dbReport.description || '',
+          category: dbReport.category,
+          status: dbReport.status || 'open',
+          location: {
+            latitude: dbReport.location.coordinates[1],
+            longitude: dbReport.location.coordinates[0],
+          },
+          address: dbReport.address,
+          imageUrl: dbReport.image_url,
+          userId: dbReport.user_id,
+          anonymous: dbReport.anonymous ?? false,
+          confirmations: dbReport.confirmations ?? 0,
+          isSponsored: dbReport.is_sponsored ?? false,
+          sponsoredBy: dbReport.sponsored_by,
+          expiresAt: dbReport.expires_at,
+          metadata: dbReport.metadata || {},
+          createdAt: dbReport.created_at,
+          updatedAt: dbReport.updated_at,
+        }));
+
+        setReports(transformedReports);
+        console.log(`✅ Refreshed ${transformedReports.length} reports`);
+      } else {
+        setReports(SAMPLE_REPORTS);
+        console.log('ℹ️ No reports in database, using sample data');
+      }
+    } catch (err: any) {
+      console.error('❌ Error refreshing reports:', err);
+      if (mounted.current) {
+        setError(err.message || 'Failed to refresh reports');
+      }
+    } finally {
+      if (mounted.current) {
+        setLoading(false);
+      }
+    }
   }, []);
 
   return {
