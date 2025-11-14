@@ -42,8 +42,8 @@ export default function QuickWaterReportButton({ onPress, style }: QuickWaterRep
         onPress={handlePress}
         activeOpacity={0.9}
       >
-        <Droplet size={20} color={LightTheme.white} strokeWidth={2.5} />
-        <Text style={styles.buttonText}>Water Out</Text>
+        <Droplet size={18} color={LightTheme.white} strokeWidth={2.5} />
+        <Text style={styles.buttonText}>Water</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -52,26 +52,26 @@ export default function QuickWaterReportButton({ onPress, style }: QuickWaterRep
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 88,
-    right: 96,
+    bottom: 24,
+    right: 196,
     shadowColor: 'rgba(33, 150, 243, 0.5)',
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 6,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 28,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
     backgroundColor: '#2196F3',
-    gap: 8,
+    gap: 6,
   },
   buttonText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 15,
+    fontSize: 13,
     color: LightTheme.white,
   },
 });

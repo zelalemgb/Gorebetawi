@@ -42,8 +42,8 @@ export default function QuickLightReportButton({ onPress, style }: QuickLightRep
         onPress={handlePress}
         activeOpacity={0.9}
       >
-        <Lightbulb size={20} color={LightTheme.white} strokeWidth={2.5} />
-        <Text style={styles.buttonText}>Light Out</Text>
+        <Lightbulb size={18} color={LightTheme.white} strokeWidth={2.5} />
+        <Text style={styles.buttonText}>Light</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -53,25 +53,25 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 24,
-    right: 96,
+    right: 100,
     shadowColor: 'rgba(253, 176, 34, 0.5)',
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 6,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 28,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
     backgroundColor: '#FDB022',
-    gap: 8,
+    gap: 6,
   },
   buttonText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 15,
+    fontSize: 13,
     color: LightTheme.white,
   },
 });
