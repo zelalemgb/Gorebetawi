@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
   withSpring
 } from 'react-native-reanimated';
-import { Lightbulb, Droplet, Fuel, ShoppingCart, Car, Wrench, Leaf, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { LightbulbOff, Droplet, Fuel, ShoppingCart, Car, Wrench, Leaf, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { ReportCategory } from '@/types';
 
@@ -20,7 +20,7 @@ const CATEGORY_CHIPS = [
   {
     key: 'light' as ReportCategory,
     label: 'Light',
-    icon: Lightbulb,
+    icon: LightbulbOff,
     color: '#FDD835'
   },
   {

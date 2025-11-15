@@ -15,14 +15,14 @@ import Animated, {
   runOnJS,
   Easing
 } from 'react-native-reanimated';
-import { 
-  Lightbulb, 
-  Droplet, 
-  Fuel, 
-  DollarSign, 
-  Car, 
-  HardHat, 
-  Leaf, 
+import {
+  LightbulbOff,
+  Droplet,
+  Fuel,
+  DollarSign,
+  Car,
+  HardHat,
+  Leaf,
   TriangleAlert as AlertTriangle,
   ChevronDown,
   MapPin
@@ -51,7 +51,7 @@ interface SummaryItem {
 }
 
 const CATEGORY_CONFIG = {
-  light: { icon: Lightbulb, emoji: '💡', color: '#FDD835' },
+  light: { icon: LightbulbOff, emoji: '💡', color: '#FDD835' },
   water: { icon: Droplet, emoji: '💧', color: '#2196F3' },
   fuel: { icon: Fuel, emoji: '⛽', color: '#43A047' },
   price: { icon: DollarSign, emoji: '🛒', color: '#FF9800' },

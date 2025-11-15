@@ -9,7 +9,7 @@ import Animated, {
   interpolate,
   Easing
 } from 'react-native-reanimated';
-import { Lightbulb, Droplet, Fuel, ShoppingCart, Car, Wrench, Leaf, MapPin, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { LightbulbOff, Droplet, Fuel, ShoppingCart, Car, Wrench, Leaf, MapPin, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Report, ReportCategory } from '@/types';
 
@@ -21,7 +21,7 @@ interface AnimatedReportPinProps {
 
 const CATEGORY_CONFIG = {
   light: {
-    icon: Lightbulb,
+    icon: LightbulbOff,
     color: '#FDD835',
     animation: 'pulse'
   },

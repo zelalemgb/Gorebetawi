@@ -15,7 +15,7 @@ import Animated, {
   runOnJS,
   Easing
 } from 'react-native-reanimated';
-import { TrendingUp, Users, Clock, MapPin, X, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Leaf, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { TrendingUp, Users, Clock, MapPin, X, LightbulbOff, Droplet, Fuel, DollarSign, Car, HardHat, Leaf, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import { Report, ReportCategory } from '@/types';
 import { formatDistanceToNow } from '@/utils/dateUtils';
@@ -42,7 +42,7 @@ interface TrendPattern {
 }
 
 const CATEGORY_CONFIG = {
-  light: { icon: Lightbulb, emoji: '💡', color: '#FDD835' },
+  light: { icon: LightbulbOff, emoji: '💡', color: '#FDD835' },
   water: { icon: Droplet, emoji: '💧', color: '#2196F3' },
   fuel: { icon: Fuel, emoji: '⛽', color: '#43A047' },
   price: { icon: DollarSign, emoji: '📈', color: '#FF9800' },

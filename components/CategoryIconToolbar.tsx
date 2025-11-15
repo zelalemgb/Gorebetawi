@@ -8,15 +8,15 @@ import Animated, {
   withTiming,
   interpolate
 } from 'react-native-reanimated';
-import { 
-  Lightbulb, 
-  Droplet, 
-  Fuel, 
-  DollarSign, 
-  Car, 
-  HardHat, 
-  Leaf, 
-  TriangleAlert as AlertTriangle 
+import {
+  LightbulbOff,
+  Droplet,
+  Fuel,
+  DollarSign,
+  Car,
+  HardHat,
+  Leaf,
+  TriangleAlert as AlertTriangle
 } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import { Report, ReportCategory } from '@/types';
@@ -34,7 +34,7 @@ interface CategoryIconToolbarProps {
 const CATEGORY_CONFIG = [
   {
     key: 'light' as ReportCategory,
-    icon: Lightbulb,
+    icon: LightbulbOff,
     color: '#FDD835',
     label: 'Light'
   },

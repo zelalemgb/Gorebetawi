@@ -8,7 +8,7 @@ import {
   Animated,
   ActivityIndicator
 } from 'react-native';
-import { X, Lightbulb, MapPin, Navigation } from 'lucide-react-native';
+import { X, LightbulbOff, MapPin, Navigation } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import { useLocation } from '@/hooks/useLocation';
 import { useAuth } from '@/hooks/useAuth';
@@ -192,7 +192,7 @@ export default function LightReportModal({
                 ]}
               />
               <Animated.View style={{ opacity: brightnessAnim }}>
-                <Lightbulb
+                <LightbulbOff
                   size={120}
                   color="#FDB022"
                   fill={lightOn ? '#FDB022' : 'transparent'}
@@ -200,7 +200,7 @@ export default function LightReportModal({
                 />
               </Animated.View>
               {!lightOn && (
-                <Lightbulb
+                <LightbulbOff
                   size={120}
                   color="#4A5568"
                   strokeWidth={2}
@@ -264,7 +264,7 @@ export default function LightReportModal({
                 <ActivityIndicator size="small" color={LightTheme.white} />
               ) : (
                 <>
-                  <Lightbulb size={24} color={LightTheme.white} strokeWidth={2} />
+                  <LightbulbOff size={24} color={LightTheme.white} strokeWidth={2} />
                   <Text style={styles.reportButtonText}>
                     Light is Off Where I Am
                   </Text>

@@ -13,7 +13,7 @@ import {
   TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { X, Camera, Lightbulb, Droplet, Fuel, DollarSign, Car, HardHat, Trash2, MapPin } from 'lucide-react-native';
+import { X, Camera, LightbulbOff, Droplet, Fuel, DollarSign, Car, HardHat, Trash2, MapPin } from 'lucide-react-native';
 import { TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { LightTheme, Colors } from '@/constants/Colors';
 import AppButton from '@/components/AppButton';
@@ -280,7 +280,7 @@ export default function ReportFormModal({
           activeOpacity={0.85}
         >
           <View style={styles.lightReportIconContainer}>
-            <Lightbulb size={28} color="#FFFFFF" strokeWidth={2.5} />
+            <LightbulbOff size={28} color="#FFFFFF" strokeWidth={2.5} />
           </View>
           <View style={styles.lightReportTextContainer}>
             <Text style={styles.lightReportTitle}>Light is Off</Text>

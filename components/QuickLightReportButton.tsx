@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Text, ViewStyle } from 'react-native';
-import { Lightbulb } from 'lucide-react-native';
+import { LightbulbOff } from 'lucide-react-native';
 import { LightTheme } from '@/constants/Colors';
 import Animated, {
   useSharedValue,
@@ -42,7 +42,7 @@ export default function QuickLightReportButton({ onPress, style }: QuickLightRep
         onPress={handlePress}
         activeOpacity={0.9}
       >
-        <Lightbulb size={16} color={LightTheme.white} strokeWidth={2.5} />
+        <LightbulbOff size={16} color={LightTheme.white} strokeWidth={2.5} />
         <Text style={styles.buttonText}>Light</Text>
       </TouchableOpacity>
     </Animated.View>
